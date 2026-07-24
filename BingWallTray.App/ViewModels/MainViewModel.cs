@@ -1452,7 +1452,7 @@ namespace BingWallTray.App.ViewModels
 
             try
             {
-                var result = await _updateService.CheckForUpdatesAsync("sm171", "BingWallTray");
+                var result = await _updateService.CheckForUpdatesAsync("l1ratch", "BingWallTray");
                 if (result.IsUpdateAvailable)
                 {
                     IsUpdateAvailable = true;
