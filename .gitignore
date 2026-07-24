@@ -1,0 +1,23 @@
+## Build outputs
+[Db]in/
+[Oo]bj/
+[Pp]ublish/
+
+## IDEs and editors
+.vs/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vscode/
+
+## Operating System files
+.DS_Store
+Thumbs.db
+
+## App-specific logs and caches
+*.log
+today_cache.json
+favorites.json
+settings.json

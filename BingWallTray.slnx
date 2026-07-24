@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="BingWallTray.App/BingWallTray.App.csproj" />
+  <Project Path="BingWallTray.Tests/BingWallTray.Tests.csproj" />
+</Solution>

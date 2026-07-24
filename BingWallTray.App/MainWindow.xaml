@@ -1,0 +1,1508 @@
+<Window x:Class="BingWallTray.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:BingWallTray.App"
+        mc:Ignorable="d"
+        Title="BingWallTray" Height="680" Width="460" Icon="pack://application:,,,/Assets/logo.png"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        ShowInTaskbar="False" Topmost="True" Activated="Window_Activated">
+    
+    <Window.Resources>
+        <!-- Векторные иконки (Geometry) -->
+        <Geometry x:Key="IconBack">M20,11H7.83L13.42,5.41L12,4L4,12L12,20L13.41,18.59L7.83,13H20V11Z</Geometry>
+        <Geometry x:Key="IconSettings">M19.14,12.94C19.18,12.63 19.2,12.32 19.2,12C19.2,11.68 19.18,11.37 19.14,11.06L21.14,9.5C21.32,9.36 21.37,9.1 21.26,8.9L19.36,5.6C19.24,5.4 19,5.32 18.78,5.41L16.42,6.36C15.93,5.97 15.39,5.66 14.8,5.42L14.44,2.9C14.4,2.68 14.22,2.5 14,2.5H10.18C9.96,2.5 9.78,2.68 9.74,2.9L9.38,5.42C8.79,5.66 8.25,5.97 7.76,6.36L5.4,5.41C5.18,5.32 4.94,5.4 4.82,5.6L2.92,8.9C2.81,9.1 2.86,9.36 3.04,9.5L5.04,11.06C5,11.37 4.98,11.68 4.98,12C4.98,12.32 5,12.63 5.04,12.94L3.04,14.5C2.86,14.64 2.81,14.9 2.92,15.1L4.82,18.4C4.94,18.6 5.18,18.68 5.4,18.59L7.76,17.64C8.25,18.03 8.79,18.34 9.38,18.58L9.74,21.1C9.78,21.32 9.96,21.5 10.18,21.5H14C14.22,21.5 14.4,21.32 14.44,21.1L14.8,18.58C15.39,18.34 15.93,18.03 16.42,17.64L18.78,18.59C19,18.68 19.24,18.6 19.36,18.4L21.26,15.1C21.37,14.9 21.32,14.64 21.14,14.5L19.14,12.94ZM12,15.6C10,15.6 8.4,14 8.4,12C8.4,10 10,8.4 12,8.4C14,8.4 15.6,10 15.6,12C15.6,14 14,15.6 12,15.6Z</Geometry>
+        <Geometry x:Key="IconFolder">M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z</Geometry>
+        <Geometry x:Key="IconDelete">M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z</Geometry>
+        <Geometry x:Key="IconMonitor">M21,16H3V4H21M21,2H3C1.9,2 1,2.9 1,4V16C1,17.1 1.9,18 3,18H10V20H8V22H16V20H14V18H21C22.1,18 23,17.1 23,16V4C23,2.9 22.1,2 21,2Z</Geometry>
+        <Geometry x:Key="IconStar">M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z</Geometry>
+        <Geometry x:Key="IconGithub">M12,2A10,10 0 0,0 2,12C2,16.42 4.87,20.17 8.84,21.5C9.34,21.58 9.5,21.27 9.5,21C9.5,20.77 9.5,20.14 9.5,19.31C6.73,19.91 6.14,17.97 6.14,17.97C5.68,16.81 5.03,16.5 5.03,16.5C4.12,15.88 5.1,15.9 5.1,15.9C6.1,15.97 6.63,16.93 6.63,16.93C7.5,18.45 8.97,18 9.54,17.76C9.63,17.11 9.89,16.67 10.17,16.42C7.95,16.17 5.62,15.31 5.62,11.5C5.62,10.39 6,9.5 6.65,8.79C6.55,8.54 6.2,7.5 6.75,6.15C6.75,6.15 7.59,5.88 9.5,7.17C10.29,6.95 11.15,6.84 12,6.84C12.85,6.84 13.71,6.95 14.5,7.17C16.41,5.88 17.25,6.15 17.25,6.15C17.8,7.5 17.45,8.54 17.35,8.79C18,9.5 18.38,10.39 18.38,11.5C18.38,15.32 16.04,16.16 13.81,16.41C14.17,16.72 14.5,17.33 14.5,18.26C14.5,19.6 14.5,20.68 14.5,21C14.5,21.27 14.66,21.59 15.17,21.5C19.14,20.16 22,16.42 22,12A10,10 0 0,0 12,2Z</Geometry>
+        <Geometry x:Key="IconInfo">M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z</Geometry>
+
+        <!-- Стиль для горизонтальных плиток списка -->
+        <Style x:Key="ThumbnailItemStyle" TargetType="ListBoxItem">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Margin" Value="4,0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="border" BorderBrush="Transparent" BorderThickness="2" CornerRadius="6" Padding="1" Background="Transparent">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="#666666"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="#0078d4"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Стиль для круглых кнопок управления в шапке -->
+        <Style x:Key="HeaderButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Width" Value="32"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="btnBrd" CornerRadius="6" Background="Transparent">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="btnBrd" Property="Background" Value="#2d2d2d"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Общий стиль для кнопок (с кастомным шаблоном, чтобы не было дефолтных засветов Windows) -->
+        <Style x:Key="FluentButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#2d2d2d"/>
+            <Setter Property="Foreground" Value="#ffffff"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Padding" Value="12,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" CornerRadius="6" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#3d3d3d"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#252525"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="border" Property="Background" Value="#1d1d1d"/>
+                                <Setter Property="Foreground" Value="#666666"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Стиль для первичных (акцентных) кнопок -->
+        <Style x:Key="AccentButtonStyle" TargetType="Button" BasedOn="{StaticResource FluentButtonStyle}">
+            <Setter Property="Background" Value="#0078d4"/>
+            <Setter Property="Foreground" Value="#ffffff"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" CornerRadius="6" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#1086e5"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#006cbe"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="border" Property="Background" Value="#1d1d1d"/>
+                                <Setter Property="Foreground" Value="#666666"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Стиль для ScrollViewer в настройках с плавающим ScrollBar -->
+        <Style x:Key="SettingsScrollViewerStyle" TargetType="ScrollViewer">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ScrollViewer">
+                        <Grid>
+                            <!-- Контент занимает всю ширину -->
+                            <ScrollContentPresenter x:Name="PART_ScrollContentPresenter" CanContentScroll="{TemplateBinding CanContentScroll}" Margin="{TemplateBinding Padding}"/>
+                            
+                            <!-- Тонкий плавающий ScrollBar поверх контента справа -->
+                            <ScrollBar x:Name="PART_VerticalScrollBar" 
+                                       HorizontalAlignment="Right"
+                                       Width="6"
+                                       Value="{TemplateBinding VerticalOffset}"
+                                       Maximum="{TemplateBinding ScrollableHeight}"
+                                       ViewportSize="{TemplateBinding ViewportHeight}"
+                                       Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}"
+                                       Cursor="Arrow"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Стиль для чекбоксов в настройках (Toggle Switch Windows 11) -->
+        <Style x:Key="SettingsCheckBoxStyle" TargetType="CheckBox">
+            <Setter Property="Foreground" Value="#ffffff"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <BulletDecorator Background="Transparent" SnapsToDevicePixels="true">
+                            <BulletDecorator.Bullet>
+                                <Grid x:Name="SwitchRoot" Width="38" Height="20" Margin="0,0,10,0">
+                                    <Border x:Name="BackgroundBorder" Background="#333333" CornerRadius="10" BorderBrush="#555555" BorderThickness="1"/>
+                                    <Border x:Name="Thumb" Background="#ffffff" Width="14" Height="14" CornerRadius="7" HorizontalAlignment="Left" Margin="3,0">
+                                        <Border.RenderTransform>
+                                            <TranslateTransform X="0" Y="0"/>
+                                        </Border.RenderTransform>
+                                    </Border>
+                                </Grid>
+                            </BulletDecorator.Bullet>
+                            <ContentPresenter HorizontalAlignment="Left" Margin="0,1,0,0" VerticalAlignment="Center">
+                                <ContentPresenter.Resources>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="#f0f0f0"/>
+                                        <Setter Property="FontWeight" Value="Medium"/>
+                                    </Style>
+                                </ContentPresenter.Resources>
+                            </ContentPresenter>
+                        </BulletDecorator>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="BackgroundBorder" Property="Background" Value="#0078d4"/>
+                                <Setter TargetName="BackgroundBorder" Property="BorderBrush" Value="#0078d4"/>
+                                <Setter TargetName="Thumb" Property="Background" Value="#ffffff"/>
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="Thumb" 
+                                                             Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)" 
+                                                             To="18" Duration="0:0:0.12"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="Thumb" 
+                                                             Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)" 
+                                                             To="0" Duration="0:0:0.12"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="BackgroundBorder" Property="BorderBrush" Value="#888888"/>
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                    <Condition Property="IsChecked" Value="True"/>
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="BackgroundBorder" Property="Background" Value="#0086f0"/>
+                            </MultiTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Стиль для ComboBoxItem (элементов выпадающего списка) -->
+        <Style TargetType="ComboBoxItem">
+            <Setter Property="Background" Value="#252525"/>
+            <Setter Property="Foreground" Value="#ffffff"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBoxItem">
+                        <Border x:Name="ItemBrd" Background="{TemplateBinding Background}" CornerRadius="4" Margin="2,1" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ItemBrd" Property="Background" Value="#3d3d3d"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="ItemBrd" Property="Background" Value="#0078d4"/>
+                                <Setter Property="Foreground" Value="#ffffff"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Стиль для ComboBox -->
+        <Style TargetType="ComboBox">
+            <Setter Property="Background" Value="#252525"/>
+            <Setter Property="Foreground" Value="#ffffff"/>
+            <Setter Property="BorderBrush" Value="#4d4d4d"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="8,5"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <ToggleButton x:Name="ToggleButton" 
+                                          BorderBrush="{TemplateBinding BorderBrush}" 
+                                          BorderThickness="{TemplateBinding BorderThickness}" 
+                                          Background="{TemplateBinding Background}" 
+                                          Grid.Column="2" 
+                                          Focusable="false"
+                                          IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}" 
+                                          ClickMode="Press">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border x:Name="Brd" CornerRadius="4" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <ContentPresenter Grid.Column="0" Content="{TemplateBinding Content}" Margin="8,4" VerticalAlignment="Center" HorizontalAlignment="Left"/>
+                                                <TextBlock Grid.Column="1" Text="▼" FontSize="8" Foreground="#cccccc" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="Brd" Property="Background" Value="#353535"/>
+                                                <Setter TargetName="Brd" Property="BorderBrush" Value="#666666"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+                            <ContentPresenter x:Name="ContentSite" IsHitTestVisible="False" Content="{TemplateBinding SelectionBoxItem}" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}" Margin="10,3,30,3" VerticalAlignment="Center" HorizontalAlignment="Left" />
+                            <Popup x:Name="Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True" Focusable="False" PopupAnimation="Slide">
+                                <Border x:Name="DropDownBorder" Background="#202020" BorderBrush="#3d3d3d" BorderThickness="1" CornerRadius="6" MinWidth="{TemplateBinding ActualWidth}" MaxHeight="{TemplateBinding MaxDropDownHeight}">
+                                    <ScrollViewer Margin="2" SnapsToDevicePixels="True" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                        <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained" />
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="HasItems" Value="false">
+                                <Setter TargetName="Popup" Property="Height" Value="95"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- СТИЛИ ДЛЯ СКРОЛЛБАРА (ScrollBar) В СТИЛЕ WINDOWS 11 -->
+        <Style x:Key="ScrollBarPageButton" TargetType="RepeatButton">
+            <Setter Property="OverridesDefaultStyle" Value="true"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Focusable" Value="false"/>
+            <Setter Property="IsTabStop" Value="false"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RepeatButton">
+                        <Rectangle Fill="Transparent" Width="{TemplateBinding Width}" Height="{TemplateBinding Height}"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ScrollBarThumb" TargetType="Thumb">
+            <Setter Property="OverridesDefaultStyle" Value="true"/>
+            <Setter Property="IsTabStop" Value="false"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Thumb">
+                        <Border x:Name="thumbBrd" CornerRadius="3" Background="#444444" Margin="2,0"/>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="true">
+                                <Setter TargetName="thumbBrd" Property="Background" Value="#666666"/>
+                            </Trigger>
+                            <Trigger Property="IsDragging" Value="true">
+                                <Setter TargetName="thumbBrd" Property="Background" Value="#888888"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="ScrollBar">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Width" Value="6"/>
+            <Setter Property="Height" Value="6"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ScrollBar">
+                        <Grid x:Name="Bg" SnapsToDevicePixels="true">
+                            <Track x:Name="PART_Track" IsDirectionReversed="true" IsEnabled="{TemplateBinding IsEnabled}">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Command="ScrollBar.PageUpCommand" Style="{StaticResource ScrollBarPageButton}"/>
+                                </Track.DecreaseRepeatButton>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Command="ScrollBar.PageDownCommand" Style="{StaticResource ScrollBarPageButton}"/>
+                                </Track.IncreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb Style="{StaticResource ScrollBarThumb}"/>
+                                </Track.Thumb>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Стиль для современного Expander в стиле Win11 -->
+        <Style x:Key="ModernExpanderStyle" TargetType="Expander">
+            <Setter Property="Background" Value="#202020"/>
+            <Setter Property="BorderBrush" Value="#2d2d2d"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Expander">
+                        <Border CornerRadius="6" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                
+                                <!-- Заголовок с кнопкой раскрытия -->
+                                <ToggleButton Grid.Row="0" IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
+                                              Cursor="Hand" Background="Transparent" BorderThickness="0" Padding="14,12">
+                                    <ToggleButton.Template>
+                                        <ControlTemplate TargetType="ToggleButton">
+                                            <Border Background="Transparent" Padding="{TemplateBinding Padding}">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    
+                                                    <!-- Собственно сам Header контент -->
+                                                    <ContentPresenter Grid.Column="0" Content="{Binding Header, RelativeSource={RelativeSource AncestorType=Expander}}" VerticalAlignment="Center"/>
+                                                    
+                                                    <!-- Стрелка раскрытия (справа) -->
+                                                    <Path x:Name="Arrow" Grid.Column="1" Data="M0,0 L4,4 L8,0" Stroke="#aaaaaa" StrokeThickness="2" Width="10" Height="6" Stretch="Uniform" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
+                                                        <Path.RenderTransform>
+                                                            <RotateTransform Angle="0"/>
+                                                        </Path.RenderTransform>
+                                                    </Path>
+                                                </Grid>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="Arrow" Property="Stroke" Value="#ffffff"/>
+                                                </Trigger>
+                                                <Trigger Property="IsChecked" Value="True">
+                                                    <Setter TargetName="Arrow" Property="RenderTransform">
+                                                        <Setter.Value>
+                                                            <RotateTransform Angle="180"/>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </ToggleButton.Template>
+                                </ToggleButton>
+                                
+                                <!-- Содержимое (выдвижная часть) -->
+                                <ContentPresenter x:Name="ExpandSite" Grid.Row="1" Visibility="Collapsed" Focusable="False"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsExpanded" Value="True">
+                                <Setter TargetName="ExpandSite" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Стиль для маленьких кнопок-тегов -->
+        <Style x:Key="TagButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#252525"/>
+            <Setter Property="Foreground" Value="#cccccc"/>
+            <Setter Property="BorderBrush" Value="#3d3d3d"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Height" Value="20"/>
+            <Setter Property="Padding" Value="8,0"/>
+            <Setter Property="Margin" Value="0,2,4,2"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border CornerRadius="10" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#353535"/>
+                                <Setter Property="Foreground" Value="#ffffff"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Конвертер видимости из boolean -->
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
+    </Window.Resources>
+
+    <!-- Внешний контейнер с тенью и скруглением углов -->
+    <Border Margin="10" Background="#181818" BorderBrush="#2d2d2d" BorderThickness="1" CornerRadius="10">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="15" Color="#000000" Opacity="0.5" ShadowDepth="3" Direction="270"/>
+        </Border.Effect>
+
+        <Grid Margin="14">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/> <!-- Шапка -->
+                <RowDefinition Height="*"/>    <!-- Содержимое страниц -->
+                <RowDefinition Height="Auto"/> <!-- Подвал статуса -->
+            </Grid.RowDefinitions>
+
+            <!-- 1. ШАПКА -->
+            <Grid Grid.Row="0" Margin="0,0,0,12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/> <!-- Кнопка Назад -->
+                    <ColumnDefinition Width="*"/>    <!-- Заголовок -->
+                    <ColumnDefinition Width="Auto"/> <!-- Кнопки управления (Шестеренка / Инфо) -->
+                </Grid.ColumnDefinitions>
+
+                <!-- Кнопка Назад (←) -->
+                <Button Grid.Column="0" Style="{StaticResource HeaderButtonStyle}" Command="{Binding GoToGalleryCommand}" 
+                        Visibility="{Binding ShowBackButton, Converter={StaticResource BoolToVisibility}}" Margin="0,0,8,0">
+                    <Path Data="{StaticResource IconBack}" Fill="#ffffff" Width="13" Height="13" Stretch="Uniform"/>
+                </Button>
+                
+                <!-- Заголовок страницы -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Image Source="pack://application:,,,/Assets/logo.png" Width="26" Height="26" Margin="0,0,8,0"
+                           Visibility="{Binding ShowLogo, Converter={StaticResource BoolToVisibility}}"/>
+                    <TextBlock Text="{Binding PageTitle}" Foreground="#ffffff" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding AppVersion, StringFormat=' v{0}'}" Foreground="#666666" FontSize="10" VerticalAlignment="Bottom" Margin="4,0,0,2"
+                               Visibility="{Binding ShowLogo, Converter={StaticResource BoolToVisibility}}"/>
+                </StackPanel>
+
+                <!-- Кнопки Избранное (★), Настройки (⚙) и О программе (ℹ) -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center"
+                            Visibility="{Binding IsGalleryActive, Converter={StaticResource BoolToVisibility}}">
+                    
+                    <!-- Кнопка избранного -->
+                    <Button Style="{StaticResource HeaderButtonStyle}" Command="{Binding GoToFavoritesCommand}" ToolTip="Избранное" Margin="0,0,6,0">
+                        <Path Data="{StaticResource IconStar}" Fill="#e0e0e0" Width="13" Height="13" Stretch="Uniform"/>
+                    </Button>
+                    
+                    <!-- Кнопка шестеренки -->
+                    <Button Style="{StaticResource HeaderButtonStyle}" Command="{Binding GoToSettingsCommand}" ToolTip="Настройки" Margin="0,0,6,0">
+                        <Path Data="{StaticResource IconSettings}" Fill="#e0e0e0" Width="13" Height="13" Stretch="Uniform"/>
+                    </Button>
+                    
+                    <!-- Кнопка инфо -->
+                    <Button Style="{StaticResource HeaderButtonStyle}" Command="{Binding GoToAboutCommand}" ToolTip="О программе">
+                        <Path Data="{StaticResource IconInfo}" Fill="#e0e0e0" Width="13" Height="13" Stretch="Uniform"/>
+                    </Button>
+                </StackPanel>
+            </Grid>
+
+            <!-- 2. СОДЕРЖИМОЕ СТРАНИЦ (TAB CONTROL) -->
+            <TabControl Grid.Row="1" SelectedIndex="{Binding SelectedTabIndex}" Background="Transparent" BorderThickness="0" Padding="0" Margin="0">
+                <TabControl.Template>
+                    <ControlTemplate TargetType="TabControl">
+                        <ContentPresenter ContentSource="SelectedContent"/>
+                    </ControlTemplate>
+                </TabControl.Template>
+
+                <!-- ВКЛАДКА 0: ГАЛЕРЕЯ (СЕТКА ОБОЕВ) -->
+                <!-- ВКЛАДКА 0: ГАЛЕРЕЯ (СЕТКА ОБОЕВ) -->
+                <TabItem>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+
+                        <!-- Сетка из плиток обоев с поддержкой бесконечного скролла natively -->
+                        <ListBox x:Name="GalleryListBox" Grid.Row="0" Grid.RowSpan="2" ItemsSource="{Binding DisplayedImages}" Background="Transparent" BorderThickness="0" Padding="0" Margin="0,0,6,0"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                 ScrollViewer.ScrollChanged="GalleryScrollViewer_ScrollChanged">
+                            <ListBox.Template>
+                                <ControlTemplate TargetType="ListBox">
+                                    <ScrollViewer Focusable="False" Style="{StaticResource SettingsScrollViewerStyle}">
+                                        <ItemsPresenter Margin="0,42,0,0"/>
+                                    </ScrollViewer>
+                                </ControlTemplate>
+                            </ListBox.Template>
+                            <ListBox.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <UniformGrid Columns="2"/>
+                                </ItemsPanelTemplate>
+                            </ListBox.ItemsPanel>
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Setter Property="BorderThickness" Value="0"/>
+                                    <Setter Property="Padding" Value="4"/>
+                                    <Setter Property="Margin" Value="0"/>
+                                    <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                    <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="ListBoxItem">
+                                                <ContentPresenter/>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <!-- Плитка обоев с анимацией масштабирования и подсветкой при наведении -->
+                                    <Border Height="130" Margin="4" CornerRadius="6" ClipToBounds="True" Background="#1c1c1c" BorderThickness="0" RenderTransformOrigin="0.5,0.5">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="RenderTransform">
+                                                    <Setter.Value>
+                                                        <ScaleTransform ScaleX="1.0" ScaleY="1.0"/>
+                                                    </Setter.Value>
+                                                </Setter>
+                                                <Style.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Trigger.EnterActions>
+                                                             <BeginStoryboard>
+                                                                 <Storyboard>
+                                                                     <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" To="1.04" Duration="0:0:0.15"/>
+                                                                     <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" To="1.04" Duration="0:0:0.15"/>
+                                                                 </Storyboard>
+                                                             </BeginStoryboard>
+                                                         </Trigger.EnterActions>
+                                                         <Trigger.ExitActions>
+                                                             <BeginStoryboard>
+                                                                 <Storyboard>
+                                                                     <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" To="1.0" Duration="0:0:0.15"/>
+                                                                     <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" To="1.0" Duration="0:0:0.15"/>
+                                                                 </Storyboard>
+                                                             </BeginStoryboard>
+                                                         </Trigger.ExitActions>
+                                                        <Setter Property="BorderBrush" Value="#0078d4"/>
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <Border.InputBindings>
+                                            <MouseBinding MouseAction="LeftDoubleClick" 
+                                                          Command="{Binding DataContext.DoubleClickedImageCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                          CommandParameter="{Binding}"/>
+                                        </Border.InputBindings>
+                                        <Grid>
+                                            <!-- Изображение -->
+                                            <Image Source="{Binding ThumbnailUrl}" Stretch="UniformToFill"/>
+
+                                            <!-- Галочка примененных обоев (Несъемная, в левом верхнем углу) -->
+                                            <Border Background="#2e7d32" CornerRadius="0,0,6,0" HorizontalAlignment="Left" VerticalAlignment="Top" Padding="6,4"
+                                                    Visibility="{Binding IsApplied, Converter={StaticResource BoolToVisibility}}">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="✓" Foreground="#ffffff" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/>
+                                                    <TextBlock Text=" АКТИВНО" Foreground="#ffffff" FontSize="8" FontWeight="Bold" VerticalAlignment="Center" Margin="2,0,0,0"/>
+                                                </StackPanel>
+                                            </Border>
+
+                                            <!-- Оверлей при наведении мыши -->
+                                            <Grid x:Name="Overlay" Background="#b3000000" Opacity="0">
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="*"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                </Grid.RowDefinitions>
+
+                                                <!-- Краткое название обоев сверху -->
+                                                <Border Grid.Row="0" VerticalAlignment="Top" Padding="8,8,8,0">
+                                                    <TextBlock Text="{Binding Title}" Foreground="#ffffff" FontSize="11" FontWeight="SemiBold" 
+                                                               TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" HorizontalAlignment="Center"/>
+                                                </Border>
+
+                                                <!-- Кнопки действий снизу -->
+                                                <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,8">
+                                                    <!-- Быстрое избранное (Звезда) -->
+                                                    <Button Command="{Binding DataContext.ToggleFavoriteForItemCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                            CommandParameter="{Binding}" ToolTip="В избранное" Width="30" Height="26" Style="{StaticResource HeaderButtonStyle}" Margin="0,0,8,0">
+                                                        <Path Data="{StaticResource IconStar}" Width="12" Height="12" Stretch="Uniform" VerticalAlignment="Center">
+                                                            <Path.Style>
+                                                                <Style TargetType="Path">
+                                                                    <Setter Property="Fill" Value="#cccccc"/>
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding IsFavorite}" Value="True">
+                                                                            <Setter Property="Fill" Value="#0078d4"/>
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </Path.Style>
+                                                        </Path>
+                                                    </Button>
+
+                                                    <!-- Кнопка Инфо -->
+                                                    <Button Command="{Binding DataContext.GoToImageDetailsCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                            CommandParameter="{Binding}" ToolTip="Информация" Width="30" Height="26" Style="{StaticResource HeaderButtonStyle}">
+                                                        <Path Data="{StaticResource IconInfo}" Fill="#ffffff" Width="12" Height="12" Stretch="Uniform" VerticalAlignment="Center"/>
+                                                    </Button>
+                                                </StackPanel>
+                                            </Grid>
+                                        </Grid>
+                                    </Border>
+                                    <DataTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Trigger.EnterActions>
+                                                <BeginStoryboard>
+                                                    <Storyboard>
+                                                        <DoubleAnimation Storyboard.TargetName="Overlay" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.15"/>
+                                                    </Storyboard>
+                                                </BeginStoryboard>
+                                            </Trigger.EnterActions>
+                                            <Trigger.ExitActions>
+                                                <BeginStoryboard>
+                                                    <Storyboard>
+                                                        <DoubleAnimation Storyboard.TargetName="Overlay" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.15"/>
+                                                    </Storyboard>
+                                                </BeginStoryboard>
+                                            </Trigger.ExitActions>
+                                        </Trigger>
+                                    </DataTemplate.Triggers>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+
+                        <!-- Парящий селектор источников (жидкое стекло) с горизонтальной прокруткой -->
+                        <Border Grid.Row="0" VerticalAlignment="Top" Margin="4,2,10,6" CornerRadius="18" Padding="3" Background="#99181818" BorderBrush="#30ffffff" BorderThickness="1" 
+                                Visibility="{Binding ShowSourceSelector, Converter={StaticResource BoolToVisibility}}" HorizontalAlignment="Center" MaxWidth="440" Panel.ZIndex="99">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="12" ShadowDepth="1" Opacity="0.3" Color="#000000"/>
+                            </Border.Effect>
+                            <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled" PreviewMouseWheel="ListBox_PreviewMouseWheel">
+                                <StackPanel Orientation="Horizontal">
+                                    <!-- Кнопка Bing -->
+                                    <Button Command="{Binding SwitchSourceCommand}" CommandParameter="Bing" Width="100" Height="28" Cursor="Hand">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border x:Name="bg" CornerRadius="15" Background="Transparent">
+                                                    <TextBlock x:Name="txt" Text="🌅 Bing" Foreground="#aaaaaa" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <DataTrigger Binding="{Binding IsBingSourceActive}" Value="True">
+                                                        <Setter TargetName="bg" Property="Background" Value="#0078d4"/>
+                                                        <Setter TargetName="txt" Property="Foreground" Value="#ffffff"/>
+                                                    </DataTrigger>
+                                                    <MultiDataTrigger>
+                                                        <MultiDataTrigger.Conditions>
+                                                            <Condition Binding="{Binding IsBingSourceActive}" Value="False"/>
+                                                            <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource TemplatedParent}}" Value="True"/>
+                                                        </MultiDataTrigger.Conditions>
+                                                        <Setter TargetName="bg" Property="Background" Value="#15ffffff"/>
+                                                        <Setter TargetName="txt" Property="Foreground" Value="#ffffff"/>
+                                                    </MultiDataTrigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                    </Button>
+
+                                    <!-- Кнопка Spotlight -->
+                                    <Button Command="{Binding SwitchSourceCommand}" CommandParameter="Spotlight" Width="100" Height="28" Margin="4,0,0,0" Cursor="Hand"
+                                            Visibility="{Binding EnableExtraSources, Converter={StaticResource BoolToVisibility}}">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border x:Name="bg" CornerRadius="15" Background="Transparent">
+                                                    <TextBlock x:Name="txt" Text="💻 Spotlight" Foreground="#aaaaaa" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <DataTrigger Binding="{Binding IsSpotlightSourceActive}" Value="True">
+                                                        <Setter TargetName="bg" Property="Background" Value="#0078d4"/>
+                                                        <Setter TargetName="txt" Property="Foreground" Value="#ffffff"/>
+                                                    </DataTrigger>
+                                                    <MultiDataTrigger>
+                                                        <MultiDataTrigger.Conditions>
+                                                            <Condition Binding="{Binding IsSpotlightSourceActive}" Value="False"/>
+                                                            <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource TemplatedParent}}" Value="True"/>
+                                                        </MultiDataTrigger.Conditions>
+                                                        <Setter TargetName="bg" Property="Background" Value="#15ffffff"/>
+                                                        <Setter TargetName="txt" Property="Foreground" Value="#ffffff"/>
+                                                    </MultiDataTrigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                    </Button>
+
+                                    <!-- Кнопка Wallhaven -->
+                                    <Button Command="{Binding SwitchSourceCommand}" CommandParameter="Wallhaven" Width="100" Height="28" Margin="4,0,0,0" Cursor="Hand"
+                                            Visibility="{Binding EnableWallhaven, Converter={StaticResource BoolToVisibility}}">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border x:Name="bg" CornerRadius="15" Background="Transparent">
+                                                    <TextBlock x:Name="txt" Text="🌌 Wallhaven" Foreground="#aaaaaa" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <DataTrigger Binding="{Binding IsWallhavenSourceActive}" Value="True">
+                                                        <Setter TargetName="bg" Property="Background" Value="#0078d4"/>
+                                                        <Setter TargetName="txt" Property="Foreground" Value="#ffffff"/>
+                                                    </DataTrigger>
+                                                    <MultiDataTrigger>
+                                                        <MultiDataTrigger.Conditions>
+                                                            <Condition Binding="{Binding IsWallhavenSourceActive}" Value="False"/>
+                                                            <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource TemplatedParent}}" Value="True"/>
+                                                        </MultiDataTrigger.Conditions>
+                                                        <Setter TargetName="bg" Property="Background" Value="#15ffffff"/>
+                                                        <Setter TargetName="txt" Property="Foreground" Value="#ffffff"/>
+                                                    </MultiDataTrigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                    </Button>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </Border>
+                    </Grid>
+                </TabItem>
+
+                <!-- СТАРЫЙ ДИЗАЙН ГАЛЕРЕИ (ОТКЛЮЧЕН)
+                <TabItem>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="330"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <Border Grid.Row="0" Background="#121212" CornerRadius="8" ClipToBounds="True" BorderBrush="#2d2d2d" BorderThickness="1">
+                            <Grid>
+                                <Image Source="{Binding SelectedImage.PreviewUrl}" Stretch="UniformToFill" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Border VerticalAlignment="Bottom" Height="90" CornerRadius="0,0,8,8">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                            <GradientStop Color="#00000000" Offset="0.0"/>
+                                            <GradientStop Color="#e6000000" Offset="1.0"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                </Border>
+                                <StackPanel VerticalAlignment="Bottom" Margin="14" IsHitTestVisible="False">
+                                    <Border Background="#0078d4" CornerRadius="4" Padding="6,2" HorizontalAlignment="Left" Margin="0,0,0,6"
+                                            Visibility="{Binding IsSelectedImageApplied, Converter={StaticResource BoolToVisibility}}">
+                                        <TextBlock Text="УСТАНОВЛЕНО" Foreground="#ffffff" FontSize="9" FontWeight="Bold"/>
+                                    </Border>
+                                    <TextBlock Text="{Binding SelectedImage.Title}" Foreground="#ffffff" FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                                    <TextBlock Text="{Binding SelectedImage.Copyright}" Foreground="#e0e0e0" FontSize="10" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <Grid Grid.Row="1" Margin="0,10,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Button Grid.Column="0" Command="{Binding SetWallpaperCommand}" Content="Установить обоями" 
+                                    Style="{StaticResource AccentButtonStyle}" Height="36" FontSize="12"/>
+
+                            <Button Grid.Column="1" Command="{Binding ToggleFavoriteCommand}" Width="44" Height="36" Margin="8,0,0,0" Cursor="Hand" ToolTip="В избранное">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border x:Name="bg" CornerRadius="6" Background="#2d2d2d" BorderThickness="0">
+                                            <TextBlock x:Name="starIcon" Text="★" FontSize="18" Foreground="#ffffff" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="bg" Property="Background" Value="#3d3d3d"/>
+                                            </Trigger>
+                                            <DataTrigger Binding="{Binding IsSelectedImageFavorite}" Value="True">
+                                                <Setter TargetName="starIcon" Property="Foreground" Value="#ffd700"/>
+                                            </DataTrigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                        </Grid>
+
+                        <Grid Grid.Row="2" Margin="0,0,0,4">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="90"/>
+                            </Grid.RowDefinitions>
+                            
+                            <TextBlock Grid.Row="0" Text="Ежедневная подборка" Foreground="#a0a0a0" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                            
+                            <ListBox Grid.Row="1" ItemsSource="{Binding TodayImages}" SelectedItem="{Binding SelectedImage}"
+                                     ItemContainerStyle="{StaticResource ThumbnailItemStyle}" Background="Transparent" BorderThickness="0" Padding="0"
+                                     ScrollViewer.HorizontalScrollBarVisibility="Hidden" ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                                     PreviewMouseWheel="ListBox_PreviewMouseWheel">
+                                <ListBox.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal"/>
+                                    </ItemsPanelTemplate>
+                                </ListBox.ItemsPanel>
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid>
+                                            <Border Width="120" Height="75" CornerRadius="6" ClipToBounds="True" Background="#121212" BorderBrush="#2d2d2d" BorderThickness="1">
+                                                <Image Source="{Binding ThumbnailUrl}" Stretch="UniformToFill"/>
+                                            </Border>
+                                            <Border Background="#0078d4" CornerRadius="0,4,0,4" Width="18" Height="18" HorizontalAlignment="Right" VerticalAlignment="Top"
+                                                    Visibility="{Binding IsApplied, Converter={StaticResource BoolToVisibility}}">
+                                                <TextBlock Text="✓" Foreground="#ffffff" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </Grid>
+                    </Grid>
+                </TabItem>
+                -->
+
+                <!-- ВКЛАДКА 1: НАСТРОЙКИ (С ПРОКРУТКОЙ) -->
+                <TabItem>
+                    <ScrollViewer Style="{StaticResource SettingsScrollViewerStyle}" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel Margin="0,0,12,0">
+                            
+                            <!-- РАЗДЕЛ: НАСТРОЙКИ ИЗОБРАЖЕНИЯ -->
+                            <TextBlock Text="Настройки изображения" Foreground="#a0a0a0" FontSize="11" FontWeight="SemiBold" Margin="4,0,0,6"/>
+                            <Border Background="#202020" BorderBrush="#2d2d2d" BorderThickness="1" CornerRadius="6" Padding="14,12" Margin="0,0,0,12">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="140"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <!-- Стиль обоев -->
+                                    <TextBlock Text="Стиль заполнения" Foreground="#e0e0e0" FontSize="12" VerticalAlignment="Center"/>
+                                    <ComboBox Grid.Column="1" SelectedValue="{Binding WallpaperStyleString}" SelectedValuePath="Tag" Height="26" VerticalAlignment="Center" Background="#2d2d2d" Foreground="#ffffff" BorderBrush="#4d4d4d">
+                                        <ComboBoxItem Content="Заполнение" Tag="Fill" IsSelected="True"/>
+                                        <ComboBoxItem Content="По размеру" Tag="Fit"/>
+                                        <ComboBoxItem Content="Растянуть" Tag="Stretch"/>
+                                        <ComboBoxItem Content="Замостить" Tag="Tile"/>
+                                        <ComboBoxItem Content="По центру" Tag="Center"/>
+                                        <ComboBoxItem Content="Расширить" Tag="Span"/>
+                                    </ComboBox>
+                                </Grid>
+                            </Border>
+
+                            <!-- РАЗДЕЛ: ЗАПУСК И УВЕДОМЛЕНИЯ -->
+                            <TextBlock Text="Запуск и уведомления" Foreground="#a0a0a0" FontSize="11" FontWeight="SemiBold" Margin="4,0,0,6"/>
+                            <Border Background="#202020" BorderBrush="#2d2d2d" BorderThickness="1" CornerRadius="6" Padding="14,12" Margin="0,0,0,12">
+                                <StackPanel>
+                                    <CheckBox Style="{StaticResource SettingsCheckBoxStyle}" IsChecked="{Binding StartWithWindows}" Content="Запускать вместе с Windows (автозапуск)" Margin="0,0,0,8"/>
+                                    <CheckBox Style="{StaticResource SettingsCheckBoxStyle}" IsChecked="{Binding StartMinimizedToTray}" Content="Запускать свернутым в трей" Margin="0,0,0,8"/>
+                                    <CheckBox Style="{StaticResource SettingsCheckBoxStyle}" IsChecked="{Binding ShowNotifications}" Content="Показывать всплывающие уведомления при смене обоев" Margin="0"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- РАЗДЕЛ: СТАНДАРТНЫЕ ИСТОЧНИКИ (BING И WINDOWS) -->
+                            <TextBlock Text="Стандартные источники (Bing и Windows)" Foreground="#a0a0a0" FontSize="11" FontWeight="SemiBold" Margin="4,0,0,6"/>
+                            <Border Background="#202020" BorderBrush="#2d2d2d" BorderThickness="1" CornerRadius="6" Padding="14,12" Margin="0,0,0,12">
+                                <StackPanel>
+                                    <CheckBox Style="{StaticResource SettingsCheckBoxStyle}" IsChecked="{Binding EnableExtraSources}" Content="Включить нативные обои &quot;Windows: интересное&quot;" Margin="0,0,0,6"/>
+                                    <CheckBox Style="{StaticResource SettingsCheckBoxStyle}" IsChecked="{Binding EnableHistoricalArchive}" Content="Загружать прошлые обои из архива GitHub" Margin="0,0,0,8"/>
+                                    
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="140"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="Регион подборки Bing" Foreground="#e0e0e0" FontSize="12" VerticalAlignment="Center"/>
+                                        <ComboBox Grid.Column="1" SelectedValue="{Binding Market}" SelectedValuePath="Tag" Height="26" VerticalAlignment="Center" Background="#2d2d2d" Foreground="#ffffff" BorderBrush="#4d4d4d">
+                                            <ComboBoxItem Content="Россия (ru-RU)" Tag="ru-RU"/>
+                                            <ComboBoxItem Content="США (en-US)" Tag="en-US"/>
+                                            <ComboBoxItem Content="Китай (zh-CN)" Tag="zh-CN"/>
+                                            <ComboBoxItem Content="Германия (de-DE)" Tag="de-DE"/>
+                                            <ComboBoxItem Content="Япония (ja-JP)" Tag="ja-JP"/>
+                                        </ComboBox>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- РАЗДЕЛ: ОБНОВЛЕНИЕ ПОДБОРКИ BING -->
+                            <TextBlock Text="Обновление подборки Bing" Foreground="#a0a0a0" FontSize="11" FontWeight="SemiBold" Margin="4,0,0,6"/>
+                            <Border Background="#202020" BorderBrush="#2d2d2d" BorderThickness="1" CornerRadius="6" Padding="14,12" Margin="0,0,0,12">
+                                <StackPanel>
+                                    <CheckBox Style="{StaticResource SettingsCheckBoxStyle}" IsChecked="{Binding AutoCheckBingEnabled}" Content="Автоматически проверять новые обои в фоне" Margin="0,0,0,10"/>
+                                    <TextBlock Text="{Binding LastCheckStatusText}" Foreground="#888888" FontSize="11" Margin="0,0,0,12"/>
+                                    <WrapPanel>
+                                        <Button Content="Проверить и обновить сейчас" Command="{Binding ForceCheckBingCommand}" 
+                                                Height="28" Padding="12,0" Margin="0,0,8,0"
+                                                Style="{StaticResource FluentButtonStyle}"/>
+                                        <Button Content="Загрузить архив обоев с GitHub" Command="{Binding ForceReloadArchiveCommand}" 
+                                                Height="28" Padding="12,0"
+                                                Style="{StaticResource FluentButtonStyle}"/>
+                                    </WrapPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- РАЗДЕЛ: ИСТОЧНИК WALLHAVEN -->
+                            <TextBlock Text="Источник: Wallhaven" Foreground="#a0a0a0" FontSize="11" FontWeight="SemiBold" Margin="4,0,0,6"/>
+                            <Border Background="#202020" BorderBrush="#2d2d2d" BorderThickness="1" CornerRadius="6" Padding="14,12" Margin="0,0,0,12">
+                                <StackPanel>
+                                    <CheckBox Style="{StaticResource SettingsCheckBoxStyle}" IsChecked="{Binding EnableWallhaven}" Content="Включить обои из сервиса Wallhaven" Margin="0"/>
+                                    
+                                    <!-- Зависимые настройки Wallhaven (скрытые по умолчанию) -->
+                                    <StackPanel Visibility="{Binding EnableWallhaven, Converter={StaticResource BoolToVisibility}}" Margin="0,10,0,0">
+                                        <!-- Ключевое слово -->
+                                        <Grid Margin="0,4">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="124"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="Ключевое слово" Foreground="#e0e0e0" FontSize="11" VerticalAlignment="Center"/>
+                                            <TextBox Grid.Column="1" Text="{Binding WallhavenQuery, UpdateSourceTrigger=PropertyChanged}" Height="24" Padding="6,2" 
+                                                     Background="#151515" Foreground="#f0f0f0" BorderBrush="#4d4d4d" BorderThickness="1" VerticalContentAlignment="Center" FontSize="11"/>
+                                        </Grid>
+                                        
+                                        <!-- Конструктор запроса -->
+                                        <Grid Margin="0,4">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="124"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="Конструктор запроса" Foreground="#888888" FontSize="10" VerticalAlignment="Top" Margin="0,2,0,0"/>
+                                            <StackPanel Grid.Column="1">
+                                                <WrapPanel>
+                                                    <Button Content="Природа" Command="{Binding AddKeywordTagCommand}" CommandParameter="nature" Style="{StaticResource TagButtonStyle}"/>
+                                                    <Button Content="Космос" Command="{Binding AddKeywordTagCommand}" CommandParameter="space" Style="{StaticResource TagButtonStyle}"/>
+                                                    <Button Content="Город" Command="{Binding AddKeywordTagCommand}" CommandParameter="city" Style="{StaticResource TagButtonStyle}"/>
+                                                    <Button Content="Мини" Command="{Binding AddKeywordTagCommand}" CommandParameter="minimalism" Style="{StaticResource TagButtonStyle}"/>
+                                                    <Button Content="Машины" Command="{Binding AddKeywordTagCommand}" CommandParameter="cars" Style="{StaticResource TagButtonStyle}"/>
+                                                    <Button Content="Аниме" Command="{Binding AddKeywordTagCommand}" CommandParameter="anime" Style="{StaticResource TagButtonStyle}"/>
+                                                    <Button Content="Фэнтези" Command="{Binding AddKeywordTagCommand}" CommandParameter="fantasy" Style="{StaticResource TagButtonStyle}"/>
+                                                    <Button Content="Киберпанк" Command="{Binding AddKeywordTagCommand}" CommandParameter="cyberpunk" Style="{StaticResource TagButtonStyle}"/>
+                                                    <Button Content="Абстракция" Command="{Binding AddKeywordTagCommand}" CommandParameter="abstract" Style="{StaticResource TagButtonStyle}"/>
+                                                </WrapPanel>
+                                                <Button Content="Очистить запрос" Command="{Binding ClearKeywordQueryCommand}" HorizontalAlignment="Left" Margin="0,4,0,0" Padding="8,0" Height="18" Background="#282828" Foreground="#ff5555" BorderBrush="#3d3d3d" BorderThickness="1" FontSize="9" Cursor="Hand">
+                                                    <Button.Template>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <Border CornerRadius="4" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                                                            </Border>
+                                                        </ControlTemplate>
+                                                    </Button.Template>
+                                                </Button>
+                                            </StackPanel>
+                                        </Grid>
+                                        
+                                        <!-- Категория поиска -->
+                                        <Grid Margin="0,8,0,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="124"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="Категория поиска" Foreground="#e0e0e0" FontSize="11" VerticalAlignment="Center"/>
+                                            <ComboBox Grid.Column="1" SelectedValue="{Binding WallhavenCategories}" SelectedValuePath="Tag" Height="24" Background="#2d2d2d" Foreground="#ffffff" BorderBrush="#4d4d4d" FontSize="11">
+                                                <ComboBoxItem Content="Общие и Аниме" Tag="110"/>
+                                                <ComboBoxItem Content="Только Общие" Tag="100"/>
+                                                <ComboBoxItem Content="Только Аниме" Tag="010"/>
+                                                <ComboBoxItem Content="Всё (Общие, Аниме, Люди)" Tag="111"/>
+                                            </ComboBox>
+                                        </Grid>
+                                        
+                                        <!-- Разрешения экрана -->
+                                        <Grid Margin="0,8,0,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="124"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="Разрешения Wallhaven" Foreground="#e0e0e0" FontSize="11" VerticalAlignment="Center"/>
+                                            <TextBox Grid.Column="1" Text="{Binding WallhavenResolutions, UpdateSourceTrigger=PropertyChanged}" Height="24" Padding="6,2" 
+                                                     Background="#151515" Foreground="#f0f0f0" BorderBrush="#4d4d4d" BorderThickness="1" VerticalContentAlignment="Center" FontSize="11"
+                                                     ToolTip="Список разрешений через запятую, например: 1920x1080,2560x1440. Определено при первом запуске."/>
+                                        </Grid>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- РАЗДЕЛ: АВТОМАТИЧЕСКАЯ СМЕНА ОБОЕВ -->
+                            <TextBlock Text="Автоматическая смена обоев" Foreground="#a0a0a0" FontSize="11" FontWeight="SemiBold" Margin="4,0,0,6"/>
+                            <Border Background="#202020" BorderBrush="#2d2d2d" BorderThickness="1" CornerRadius="6" Padding="14,12" Margin="0,0,0,12">
+                                <StackPanel>
+                                    <!-- Включить автосмену -->
+                                    <CheckBox Style="{StaticResource SettingsCheckBoxStyle}" IsChecked="{Binding AutoChangeEnabled}" Content="Включить автосмену обоев" Margin="0,0,0,10"/>
+                                    
+                                    <StackPanel Visibility="{Binding AutoChangeEnabled, Converter={StaticResource BoolToVisibility}}">
+                                        <!-- Источник для автосмены -->
+                                        <Grid Margin="0,0,0,8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="140"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="Источник обоев" Foreground="#e0e0e0" FontSize="12" VerticalAlignment="Center"/>
+                                            <ComboBox Grid.Column="1" SelectedValue="{Binding AutoChangeSource}" SelectedValuePath="Tag" Height="26" VerticalAlignment="Center" Background="#2d2d2d" Foreground="#ffffff" BorderBrush="#4d4d4d">
+                                                <ComboBoxItem Content="Сегодняшние Bing (каждый раз)" Tag="TodayBing"/>
+                                                <ComboBoxItem Content="Только новые обои Bing (раз в день)" Tag="NewBing"/>
+                                                <ComboBoxItem Content="Случайные Bing (выборка)" Tag="RandomBing"/>
+                                                <ComboBoxItem Content="Случайные из Избранного" Tag="Favorites"/>
+                                            </ComboBox>
+                                        </Grid>
+
+                                        <!-- Триггер автосмены -->
+                                        <Grid Margin="0,0,0,8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="140"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="Триггер смены" Foreground="#e0e0e0" FontSize="12" VerticalAlignment="Center"/>
+                                            <ComboBox Grid.Column="1" SelectedValue="{Binding AutoChangeTrigger}" SelectedValuePath="Tag" Height="26" VerticalAlignment="Center" Background="#2d2d2d" Foreground="#ffffff" BorderBrush="#4d4d4d">
+                                                <ComboBoxItem Content="По интервалу времени" Tag="Interval"/>
+                                                <ComboBoxItem Content="При запуске программы" Tag="Startup"/>
+                                                <ComboBoxItem Content="При запуске и по интервалу" Tag="Both"/>
+                                            </ComboBox>
+                                        </Grid>
+
+                                        <!-- Интервал автосмены (показывается только для Interval/Both) -->
+                                        <Grid x:Name="intervalGrid" Margin="0,8,0,2">
+                                            <Grid.Style>
+                                                <Style TargetType="Grid">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding AutoChangeTrigger}" Value="Interval">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding AutoChangeTrigger}" Value="Both">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Grid.Style>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="140"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            
+                                            <!-- Предустановки интервала -->
+                                            <TextBlock Text="Интервал автосмены" Foreground="#e0e0e0" FontSize="12" VerticalAlignment="Center"/>
+                                            <ComboBox Grid.Column="1" SelectedValue="{Binding SelectedIntervalPreset}" SelectedValuePath="Tag" Height="26" VerticalAlignment="Center" Background="#2d2d2d" Foreground="#ffffff" BorderBrush="#4d4d4d">
+                                                <ComboBoxItem Content="Раз в 30 минут" Tag="30m"/>
+                                                <ComboBoxItem Content="Раз в 1 час" Tag="1h"/>
+                                                <ComboBoxItem Content="Раз в 6 часов" Tag="6h"/>
+                                                <ComboBoxItem Content="Раз в 12 часов" Tag="12h"/>
+                                                <ComboBoxItem Content="Раз в 24 часа" Tag="24h"/>
+                                                <ComboBoxItem Content="Свой вариант..." Tag="Custom"/>
+                                            </ComboBox>
+
+                                            <!-- Текстовое поле ввода для своего варианта -->
+                                            <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,6,0,0" Visibility="{Binding IsCustomIntervalVisible, Converter={StaticResource BoolToVisibility}}">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="140"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Text="Свой интервал" Foreground="#e0e0e0" FontSize="12" VerticalAlignment="Center"/>
+                                                <TextBox Grid.Column="1" Text="{Binding CustomIntervalString, UpdateSourceTrigger=PropertyChanged}" Height="24" Padding="6,2" 
+                                                         Background="#151515" Foreground="#f0f0f0" BorderBrush="#4d4d4d" BorderThickness="1" VerticalContentAlignment="Center" FontSize="11"
+                                                         ToolTip="Формат ввода: число + буква. Например: 30s (секунды), 15m (минуты), 4h (часы), 2d (дни), 1y (года). Можно писать дробные, например: 1.5h"/>
+                                            </Grid>
+                                        </Grid>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- РАЗДЕЛ: ПАПКА СОХРАНЕНИЯ -->
+                            <TextBlock Text="Папка сохранения" Foreground="#a0a0a0" FontSize="11" FontWeight="SemiBold" Margin="4,0,0,6"/>
+                            <Border Background="#202020" BorderBrush="#2d2d2d" BorderThickness="1" CornerRadius="6" Padding="14,12" Margin="0,0,0,12">
+                                <StackPanel>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        
+                                        <TextBox Grid.Column="0" Text="{Binding DownloadFolder}" IsReadOnly="True" Height="28" Padding="6,4" 
+                                                 Background="#151515" Foreground="#f0f0f0" BorderBrush="#4d4d4d" BorderThickness="1" VerticalContentAlignment="Center" FontSize="11"/>
+                                        
+                                        <Button Grid.Column="1" Command="{Binding ChooseFolderCommand}" Content="Обзор" Width="60" Height="28" Margin="8,0,0,0" 
+                                                Style="{StaticResource FluentButtonStyle}"/>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- РАЗДЕЛ: ОБСЛУЖИВАНИЕ И ЛОГИ -->
+                            <TextBlock Text="Обслуживание и логи" Foreground="#a0a0a0" FontSize="11" FontWeight="SemiBold" Margin="4,0,0,6"/>
+                            <Border Background="#202020" BorderBrush="#2d2d2d" BorderThickness="1" CornerRadius="6" Padding="14,12" Margin="0,0,0,4">
+                                <StackPanel>
+                                    <!-- Включение логов -->
+                                    <CheckBox Style="{StaticResource SettingsCheckBoxStyle}" IsChecked="{Binding LoggingEnabled}" Content="Включить ведение файла логов" Margin="0,0,0,6"/>
+                                    
+                                    <!-- Уровень логирования -->
+                                    <Grid Margin="0,4,0,12">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="140"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Уровень логов" Foreground="#e0e0e0" FontSize="12" VerticalAlignment="Center"/>
+                                        <ComboBox Grid.Row="0" Grid.Column="1" SelectedValue="{Binding LogLevelString}" SelectedValuePath="Tag" Height="26" VerticalAlignment="Center" Background="#2d2d2d" Foreground="#ffffff" BorderBrush="#4d4d4d">
+                                            <ComboBoxItem Content="Отладка (Debug)" Tag="Debug"/>
+                                            <ComboBoxItem Content="Информация (Info)" Tag="Info"/>
+                                            <ComboBoxItem Content="Предупреждения (Warning)" Tag="Warning"/>
+                                            <ComboBoxItem Content="Только ошибки (Error)" Tag="Error"/>
+                                        </ComboBox>
+                                    </Grid>
+
+                                    <!-- Кнопки очистки логов и папки -->
+                                    <Grid Margin="0,0,0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Button Grid.Column="0" Command="{Binding OpenLogsCommand}" Content="Папка логов" Height="30" Margin="0,0,4,0"
+                                                Style="{StaticResource FluentButtonStyle}"/>
+                                        <Button Grid.Column="1" Command="{Binding ClearLogsCommand}" Content="Очистить логи" Height="30" Margin="4,0,0,0"
+                                                Style="{StaticResource FluentButtonStyle}" Foreground="#ff5555"/>
+                                    </Grid>
+
+                                    <!-- Кнопка сброса кэша -->
+                                    <Button Command="{Binding ClearCacheCommand}" Content="Очистить кэш подборки обоев" Height="30"
+                                            Style="{StaticResource FluentButtonStyle}"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+
+                <!-- ВКЛАДКА 2: О ПРОГРАММЕ (С ПРОКРУТКОЙ И ВЫРАВНИВАНИЕМ) -->
+                <TabItem>
+                    <ScrollViewer Style="{StaticResource SettingsScrollViewerStyle}" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel Margin="0,0,12,0">
+                            <!-- Логотип и Название -->
+                            <StackPanel Margin="0,20,0,25" HorizontalAlignment="Center">
+                                <Image Source="pack://application:,,,/Assets/logo.png" Width="96" Height="96" HorizontalAlignment="Center" Margin="0,0,0,14"/>
+                                <TextBlock Text="BingWallTray" Foreground="#ffffff" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Автоматическая смена обоев Bing" Foreground="#888888" FontSize="12" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                            </StackPanel>
+
+                            <!-- Обновления (GitHub) -->
+                            <Border Background="#202020" BorderBrush="#2d2d2d" BorderThickness="1" CornerRadius="6" Padding="16,14" Margin="0,0,0,12">
+                                <StackPanel>
+                                    <TextBlock Text="Обновления приложения" Foreground="#e0e0e0" FontSize="11" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                                    <TextBlock Text="{Binding UpdateStatusText}" Foreground="#f0f0f0" FontSize="12" Margin="0,0,0,12"/>
+                                    
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        
+                                        <Button Grid.Column="0" Command="{Binding CheckUpdateCommand}" Content="Проверить сейчас" Height="32" 
+                                                Style="{StaticResource AccentButtonStyle}" Margin="0,0,8,0"/>
+
+                                        <Button Grid.Column="1" Command="{Binding OpenReleaseUrlCommand}" Content="Скачать" Width="80" Height="32">
+                                            <Button.Style>
+                                                <Style TargetType="Button" BasedOn="{StaticResource FluentButtonStyle}">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsUpdateAvailable}" Value="False">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Лицензии и Благодарности (Сворачиваемый список, выровнен по ширине с карточкой выше) -->
+                            <Expander Style="{StaticResource ModernExpanderStyle}" ExpandDirection="Down" Margin="0,0,0,12">
+                                <Expander.Header>
+                                    <TextBlock Text="Используемые компоненты и лицензии" Foreground="#e0e0e0" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                </Expander.Header>
+                                <StackPanel Margin="12,10,12,10">
+                                    <!-- Лицензия v5tech/bing-wallpaper -->
+                                    <Border BorderBrush="#3d3d3d" BorderThickness="0,0,0,1" Padding="0,0,0,10" Margin="0,0,0,8">
+                                        <StackPanel>
+                                            <TextBlock Text="v5tech/bing-wallpaper (GitHub)" Foreground="#ffffff" FontSize="11" FontWeight="SemiBold" Margin="0,0,0,2"/>
+                                            <TextBlock Text="Исторический архив обоев Bing. Используется для подгрузки прошлых подборок картинок." Foreground="#aaaaaa" FontSize="10" TextWrapping="Wrap" Margin="0,0,0,4"/>
+                                            <Button Style="{StaticResource FluentButtonStyle}" HorizontalAlignment="Left" Margin="0,4,0,0" Padding="10,0" Height="26" Background="#2d2d2d" BorderBrush="#3d3d3d" BorderThickness="1"
+                                                    Command="{Binding OpenUrlCommand}" CommandParameter="https://github.com/v5tech/bing-wallpaper">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Path Data="{StaticResource IconGithub}" Fill="#ffffff" Width="11" Height="11" Stretch="Uniform" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                                    <TextBlock Text="Открыть GitHub репозиторий" Foreground="#ffffff" FontSize="10" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Button>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- WPF / .NET Runtime -->
+                                    <Border BorderBrush="#3d3d3d" BorderThickness="0,0,0,1" Padding="0,0,0,8" Margin="0,0,0,8">
+                                        <StackPanel>
+                                            <TextBlock Text="Microsoft .NET 8.0 &amp; WPF" Foreground="#ffffff" FontSize="11" FontWeight="SemiBold" Margin="0,0,0,2"/>
+                                            <TextBlock Text="Платформа разработки и графическая подсистема для создания приложения." Foreground="#aaaaaa" FontSize="10" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Lucide & Fluent Icons -->
+                                    <Border BorderBrush="#3d3d3d" BorderThickness="0,0,0,1" Padding="0,0,0,8" Margin="0,0,0,8">
+                                        <StackPanel>
+                                            <TextBlock Text="Lucide / Fluent System Icons" Foreground="#ffffff" FontSize="11" FontWeight="SemiBold" Margin="0,0,0,2"/>
+                                            <TextBlock Text="Наборы векторных значков интерфейса (лицензия MIT)." Foreground="#aaaaaa" FontSize="10" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- System.Text.Json -->
+                                    <Border Padding="0" Margin="0">
+                                        <StackPanel>
+                                            <TextBlock Text="System.Text.Json" Foreground="#ffffff" FontSize="11" FontWeight="SemiBold" Margin="0,0,0,2"/>
+                                            <TextBlock Text="Библиотека для высокопроизводительной сериализации и парсинга JSON (лицензия MIT)." Foreground="#aaaaaa" FontSize="10" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </Expander>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+
+                <!-- ВКЛАДКА 3: ИЗБРАННОЕ -->
+                <TabItem>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Список избранного -->
+                        <ScrollViewer Style="{StaticResource SettingsScrollViewerStyle}" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                            <Grid Margin="2,0,6,0">
+                                <!-- Текст при пустом списке избранного -->
+                                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,120,0,0" IsHitTestVisible="False"
+                                            Visibility="{Binding IsFavoritesEmpty, Converter={StaticResource BoolToVisibility}}">
+                                    <TextBlock Text="★" Foreground="#444444" FontSize="56" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+                                    <TextBlock Text="Список избранного пуст" Foreground="#ffffff" FontSize="15" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,0,0,6"/>
+                                    <TextBlock Text="Добавляйте понравившиеся обои с помощью кнопки ★ на главном экране." Foreground="#888888" FontSize="11" TextAlignment="Center" HorizontalAlignment="Center" Width="280" TextWrapping="Wrap"/>
+                                </StackPanel>
+
+                                <!-- Элементы списка -->
+                                <ItemsControl ItemsSource="{Binding FavoritesCollection}"
+                                              Visibility="{Binding HasFavorites, Converter={StaticResource BoolToVisibility}}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <!-- Карточка избранного -->
+                                            <Border Background="#202020" BorderBrush="#2d2d2d" BorderThickness="1" CornerRadius="8" Margin="0,0,0,10" Padding="10">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="100"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <!-- Миниатюра (закругленная) -->
+                                                    <Border Grid.Column="0" Width="100" Height="62" CornerRadius="4" ClipToBounds="True" Background="#121212">
+                                                        <Image Source="{Binding DisplayPath}" Stretch="UniformToFill"/>
+                                                    </Border>
+
+                                                    <!-- Текст и Кнопки управления справа -->
+                                                    <Grid Grid.Column="1" Margin="12,0,0,0">
+                                                        <Grid.RowDefinitions>
+                                                            <RowDefinition Height="*"/>
+                                                            <RowDefinition Height="Auto"/>
+                                                        </Grid.RowDefinitions>
+
+                                                        <!-- Заголовок и Копирайт -->
+                                                        <StackPanel Grid.Row="0" VerticalAlignment="Top">
+                                                            <TextBlock Text="{Binding Title}" Foreground="#ffffff" FontSize="12" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                                            <TextBlock Text="{Binding Copyright}" Foreground="#888888" FontSize="10" TextTrimming="CharacterEllipsis" Margin="0,2,0,0" Opacity="0.8"/>
+                                                        </StackPanel>
+
+                                                        <!-- Кнопки действий -->
+                                                        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,6,0,0">
+                                                            <!-- Установить обоями -->
+                                                            <Button Command="{Binding DataContext.ApplyFavoriteCommand, RelativeSource={RelativeSource AncestorType=Window}}" 
+                                                                    CommandParameter="{Binding}" ToolTip="Установить обоями"
+                                                                    Style="{StaticResource FluentButtonStyle}" Width="32" Height="26" Margin="0,0,6,0">
+                                                                <Path Data="{StaticResource IconMonitor}" Fill="#0078d4" Width="12" Height="12" Stretch="Uniform"/>
+                                                            </Button>
+
+                                                            <!-- Открыть в папке -->
+                                                            <Button Command="{Binding DataContext.OpenFavoriteFolderCommand, RelativeSource={RelativeSource AncestorType=Window}}" 
+                                                                    CommandParameter="{Binding}" ToolTip="Показать в папке"
+                                                                    Style="{StaticResource FluentButtonStyle}" Width="32" Height="26" Margin="0,0,6,0">
+                                                                <Path Data="{StaticResource IconFolder}" Fill="#ffd700" Width="12" Height="12" Stretch="Uniform"/>
+                                                            </Button>
+
+                                                            <!-- Удалить из избранного -->
+                                                            <Button Command="{Binding DataContext.RemoveFavoriteItemCommand, RelativeSource={RelativeSource AncestorType=Window}}" 
+                                                                    CommandParameter="{Binding}" ToolTip="Удалить из избранного"
+                                                                    Style="{StaticResource FluentButtonStyle}" Width="32" Height="26">
+                                                                <Path Data="{StaticResource IconDelete}" Fill="#ff5555" Width="12" Height="12" Stretch="Uniform"/>
+                                                            </Button>
+                                                        </StackPanel>
+                                                    </Grid>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Grid>
+                        </ScrollViewer>
+                    </Grid>
+                </TabItem>
+
+                <!-- ВКЛАДКА 4: ДЕТАЛИ ИЗОБРАЖЕНИЯ -->
+                <TabItem>
+                    <Grid Margin="0,0,6,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Содержимое деталей -->
+                        <ScrollViewer Grid.Row="1" Style="{StaticResource SettingsScrollViewerStyle}" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                            <StackPanel Margin="0,0,6,0">
+                                <!-- Крупное превью с закруглениями -->
+                                <Border Height="300" Background="#121212" CornerRadius="8" ClipToBounds="True" BorderBrush="#2d2d2d" BorderThickness="1">
+                                    <Grid>
+                                        <Image Source="{Binding SelectedDetailsImage.PreviewUrl}" Stretch="UniformToFill" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        
+                                        <!-- Темный градиент внизу для лучшей читаемости -->
+                                        <Border VerticalAlignment="Bottom" Height="80" CornerRadius="0,0,8,8">
+                                            <Border.Background>
+                                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                                    <GradientStop Color="#00000000" Offset="0.0"/>
+                                                    <GradientStop Color="#cc000000" Offset="1.0"/>
+                                                </LinearGradientBrush>
+                                            </Border.Background>
+                                        </Border>
+
+                                        <!-- Индикатор "Установлено" на экране деталей -->
+                                        <Border Background="#2e7d32" CornerRadius="0,4,0,4" Width="100" Height="24" HorizontalAlignment="Right" VerticalAlignment="Top"
+                                                Visibility="{Binding IsSelectedDetailsImageApplied, Converter={StaticResource BoolToVisibility}}">
+                                            <TextBlock Text="УСТАНОВЛЕНО" Foreground="#ffffff" FontSize="9" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Информация об обоях -->
+                                <StackPanel Margin="2,14,2,14">
+                                    <TextBlock Text="{Binding SelectedDetailsImage.Title}" Foreground="#ffffff" FontSize="18" FontWeight="Bold" TextWrapping="Wrap" Margin="0,0,0,6"/>
+                                    
+                                    <Border Background="#202020" BorderBrush="#2d2d2d" BorderThickness="1" CornerRadius="6" Padding="12" Margin="0,6,0,14">
+                                        <StackPanel>
+                                            <!-- Описание / Авторское право -->
+                                            <TextBlock Text="Авторское право:" Foreground="#888888" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,2"/>
+                                            <TextBlock Text="{Binding SelectedDetailsImage.Copyright}" Foreground="#e0e0e0" FontSize="12" TextWrapping="Wrap"/>
+                                            
+                                            <!-- Ссылка на Bing -->
+                                            <TextBlock Text="Ссылка на источник:" Foreground="#888888" FontSize="10" FontWeight="SemiBold" Margin="0,8,0,2"/>
+                                            <Button Style="{StaticResource FluentButtonStyle}" HorizontalAlignment="Left" Margin="0,4,0,0" Padding="10,0" Height="26" Background="#2d2d2d" BorderBrush="#3d3d3d" BorderThickness="1"
+                                                    Command="{Binding DataContext.OpenUrlCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    CommandParameter="{Binding SelectedDetailsImage.CopyrightLink}">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Path Data="{StaticResource IconInfo}" Fill="#ffffff" Width="11" Height="11" Stretch="Uniform" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                                    <TextBlock Text="Открыть страницу источника" Foreground="#ffffff" FontSize="10" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Button>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Кнопки управления -->
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Применить обои -->
+                                        <Button Grid.Column="0" Command="{Binding SetDetailsWallpaperCommand}" Content="Установить обоями"
+                                                Style="{StaticResource AccentButtonStyle}" Height="36" FontSize="12"/>
+
+                                        <!-- Избранное (Звезда) -->
+                                        <Button Grid.Column="1" Command="{Binding ToggleDetailsFavoriteCommand}" Width="44" Height="36" Margin="8,0,0,0" Cursor="Hand" ToolTip="В избранное">
+                                            <Button.Template>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border x:Name="bg" CornerRadius="6" Background="#2d2d2d" BorderThickness="0">
+                                                        <Path x:Name="starIcon" Data="{StaticResource IconStar}" Width="16" Height="16" Stretch="Uniform" Fill="#ffffff" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Border>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter TargetName="bg" Property="Background" Value="#3d3d3d"/>
+                                                        </Trigger>
+                                                        <DataTrigger Binding="{Binding IsSelectedDetailsImageFavorite}" Value="True">
+                                                            <Setter TargetName="starIcon" Property="Fill" Value="#0078d4"/>
+                                                        </DataTrigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Button.Template>
+                                        </Button>
+                                    </Grid>
+                                </StackPanel>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Grid>
+                </TabItem>
+            </TabControl>
+
+            <!-- 3. ПОДВАЛ СТАТУСА -->
+            <Grid Grid.Row="2" Margin="0,6,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" Foreground="#a0a0a0" FontSize="10" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                
+                <Grid Grid.Column="1" VerticalAlignment="Center">
+                    <!-- Анимированный индикатор загрузки -->
+                    <StackPanel Orientation="Horizontal" Visibility="{Binding IsDownloading, Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="⚙" Foreground="#0078d4" FontSize="11" VerticalAlignment="Center" Margin="0,0,4,0">
+                            <TextBlock.RenderTransform>
+                                <RotateTransform Angle="0" CenterX="5.5" CenterY="5.5"/>
+                            </TextBlock.RenderTransform>
+                            <TextBlock.Triggers>
+                                <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)"
+                                                             From="0" To="360" Duration="0:0:1.5" RepeatBehavior="Forever"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
+                            </TextBlock.Triggers>
+                        </TextBlock>
+                        <TextBlock Text="Загрузка..." Foreground="#0078d4" FontSize="10" VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- Время последнего обновления (скрывается во время загрузки) -->
+                    <TextBlock Text="{Binding LastUpdateText}" Foreground="#666666" FontSize="10" VerticalAlignment="Center">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Visible"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsDownloading}" Value="True">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </Grid>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>

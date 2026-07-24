@@ -1,0 +1,141 @@
+<Window x:Class="BingWallTray.App.Views.WelcomeWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Добро пожаловать" Width="430" Height="480" Icon="pack://application:,,,/Assets/logo.png"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        ResizeMode="NoResize" WindowStartupLocation="CenterScreen" ShowInTaskbar="True" Topmost="True"
+        MouseLeftButtonDown="Window_MouseLeftButtonDown">
+    
+    <Window.Resources>
+        <!-- Стиль для акцентной кнопки -->
+        <Style x:Key="AccentButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#0078d4"/>
+            <Setter Property="Foreground" Value="#ffffff"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Height" Value="38"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" CornerRadius="6" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#1086e5"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#006cbe"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+    
+    <Border Margin="10" Background="#1c1c1c" BorderBrush="#2d2d2d" BorderThickness="1" CornerRadius="12">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="15" Color="#000000" Opacity="0.5" ShadowDepth="3" Direction="270"/>
+        </Border.Effect>
+        
+        <Grid Margin="24">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Шапка: Логотип и Заголовок -->
+            <StackPanel Grid.Row="0" HorizontalAlignment="Center" Margin="0,5,0,16">
+                <Image Source="pack://application:,,,/Assets/logo.png" Width="64" Height="64" Margin="0,0,0,12"/>
+                <TextBlock Text="Добро пожаловать в BingWallTray!" Foreground="#ffffff" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center" TextAlignment="Center"/>
+                <TextBlock Text="Базовое руководство по использованию приложения" Foreground="#888888" FontSize="11" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+            </StackPanel>
+
+            <!-- Основной контент: Возможности -->
+            <StackPanel Grid.Row="1" VerticalAlignment="Center" Margin="6,0,6,0">
+                <!-- Пункт 1: Автосмена -->
+                <Grid Margin="0,0,0,16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="42"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <Border Grid.Column="0" Width="32" Height="32" CornerRadius="16" Background="#262626" BorderBrush="#353535" BorderThickness="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <!-- Иконка Горы/Пейзаж -->
+                        <Path Data="M21,19V5C21,3.9 20.1,3 19,3H5C3.9,3 3,3.9 3,5V19C3,20.1 3.9,21 5,21H19C20.1,21 21,20.1 21,19M8.5,13.5L11,16.5L14.5,12L19,18H5L8.5,13.5Z" 
+                              Fill="#0078d4" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    
+                    <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="Автосмена обоев" Foreground="#ffffff" FontSize="12" FontWeight="SemiBold"/>
+                        <TextBlock Text="Автоматическая установка свежих картинок из Bing, Spotlight и Wallhaven по таймеру или при включении ПК." Foreground="#aaaaaa" FontSize="10" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Пункт 2: Сворачивание в трей -->
+                <Grid Margin="0,0,0,16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="42"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <Border Grid.Column="0" Width="32" Height="32" CornerRadius="16" Background="#262626" BorderBrush="#353535" BorderThickness="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <!-- Иконка Inbox/Трей -->
+                        <Path Data="M19,15H15A3,3 0 0,1 12,18A3,3 0 0,1 9,15H5V5H19V15M19,3H5C3.89,3 3,3.89 3,4V15C3,16.1 3.9,17 5,17H9A3,3 0 0,0 12,20A3,3 0 0,0 15,17H19C20.1,17 21,16.1 21,15V4C21,2.89 20.1,3 19,3Z" 
+                              Fill="#2ecc71" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    
+                    <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="Работа в системном трее" Foreground="#ffffff" FontSize="12" FontWeight="SemiBold"/>
+                        <TextBlock Text="Приложение работает тихо и незаметно. Панель открывается левым кликом по значку рядом с системными часами." Foreground="#aaaaaa" FontSize="10" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Пункт 3: Быстрое меню -->
+                <Grid Margin="0,0,0,16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="42"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <Border Grid.Column="0" Width="32" Height="32" CornerRadius="16" Background="#262626" BorderBrush="#353535" BorderThickness="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <!-- Иконка Молния -->
+                        <Path Data="M7,2H17L13.5,9H19L10,22V14H5L7,2Z" 
+                              Fill="#f1c40f" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    
+                    <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="Быстрое контекстное меню" Foreground="#ffffff" FontSize="12" FontWeight="SemiBold"/>
+                        <TextBlock Text="Правый клик по иконке в трее открывает меню управления: можно приостановить проверки, зафиксировать обои или выйти." Foreground="#aaaaaa" FontSize="10" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Пункт 4: Определение экрана -->
+                <Grid Margin="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="42"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <Border Grid.Column="0" Width="32" Height="32" CornerRadius="16" Background="#262626" BorderBrush="#353535" BorderThickness="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <!-- Иконка Монитор -->
+                        <Path Data="M21,16H3V4H21M21,2H3C1.9,2 1,2.9 1,4V16C1,17.1 1.9,18 3,18H10V20H8V22H16V20H14V18H21C22.1,18 23,17.1 23,16V4C23,2.9 22.1,2 21,2Z" 
+                              Fill="#e74c3c" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    
+                    <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="Поддержка разрешения экрана" Foreground="#ffffff" FontSize="12" FontWeight="SemiBold"/>
+                        <TextBlock Text="Приложение автоматически определило размеры вашего экрана, чтобы скачивать только идеально подходящие обои." Foreground="#aaaaaa" FontSize="10" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+
+            <!-- Подвал: Кнопка продолжить -->
+            <Button Grid.Row="2" Content="Начать работу" Height="38" Style="{StaticResource AccentButtonStyle}" Click="ContinueButton_Click" HorizontalAlignment="Stretch" Margin="6,12,6,4"/>
+        </Grid>
+    </Border>
+</Window>
