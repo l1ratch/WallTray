@@ -12,7 +12,7 @@ namespace BingWallTray.App.Services
     public class StartupService : IStartupService
     {
         private const string RunRegistryKey = @"Software\Microsoft\Windows\CurrentVersion\Run";
-        private const string AppName = "BingWallTray";
+        private const string AppName = "WallTray";
         private readonly ILoggingService _logger;
 
         public StartupService(ILoggingService logger)

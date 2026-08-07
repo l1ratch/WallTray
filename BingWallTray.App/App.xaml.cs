@@ -36,7 +36,7 @@ namespace BingWallTray.App
 
         protected override async void OnStartup(StartupEventArgs e)
         {
-            const string mutexName = "Local\\BingWallTrayMutex_171a8f9";
+            const string mutexName = "Local\\WallTrayMutex_171a8f9";
             _appMutex = new System.Threading.Mutex(true, mutexName, out bool createdNew);
             if (!createdNew)
             {
@@ -71,7 +71,7 @@ namespace BingWallTray.App
                 {
                     System.Windows.MessageBox.Show(
                         $"Критическая ошибка при запуске приложения:\n{args.Exception.Message}\n\nДетали записаны в лог.",
-                        "BingWallTray - Ошибка",
+                        "WallTray - Ошибка",
                         MessageBoxButton.OK,
                         MessageBoxImage.Error
                     );
@@ -90,7 +90,7 @@ namespace BingWallTray.App
             };
 
             _dateTimeProvider = new LocalDateTimeProvider();
-            _logger.LogInfo("=== Запуск BingWallTray ===");
+            _logger.LogInfo("=== Запуск WallTray ===");
 
             // 2. Инициализация сервисов
             _settingsService = new SettingsService(_logger, _dateTimeProvider);
@@ -305,7 +305,7 @@ namespace BingWallTray.App
             _mainWindow?.ForceClose();
 
             // Завершаем работу процесса
-            _logger?.LogInfo("=== Завершение процесса BingWallTray ===");
+            _logger?.LogInfo("=== Завершение процесса WallTray ===");
             Shutdown();
         }
 

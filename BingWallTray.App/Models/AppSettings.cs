@@ -46,7 +46,7 @@ namespace BingWallTray.App.Models
             try
             {
                 string myPictures = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
-                DownloadFolder = Path.Combine(myPictures, "BingWallTray");
+                DownloadFolder = Path.Combine(myPictures, "WallTray");
             }
             catch
             {

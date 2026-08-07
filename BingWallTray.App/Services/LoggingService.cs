@@ -27,7 +27,7 @@ namespace BingWallTray.App.Services
             try
             {
                 string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                LogFolder = Path.Combine(appData, "BingWallTray", "Logs");
+                LogFolder = Path.Combine(appData, "WallTray", "Logs");
                 if (!Directory.Exists(LogFolder))
                 {
                     Directory.CreateDirectory(LogFolder);

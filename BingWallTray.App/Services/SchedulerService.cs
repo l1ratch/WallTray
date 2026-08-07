@@ -58,7 +58,7 @@ namespace BingWallTray.App.Services
             try
             {
                 string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                string cachePath = Path.Combine(appData, "BingWallTray", "today_cache.json");
+                string cachePath = Path.Combine(appData, "WallTray", "today_cache.json");
                 if (File.Exists(cachePath))
                 {
                     string json = File.ReadAllText(cachePath);
@@ -262,7 +262,7 @@ namespace BingWallTray.App.Services
                     _appState.IsChecking = false;
                     if (isManual || settings.ShowNotifications)
                     {
-                        _notificationService.ShowError("BingWallTray", "Не удалось загрузить данные Bing. Проверьте интернет-соединение.");
+                        _notificationService.ShowError("WallTray", "Не удалось загрузить данные Bing. Проверьте интернет-соединение.");
                     }
                     return;
                 }
@@ -274,7 +274,7 @@ namespace BingWallTray.App.Services
                 try
                 {
                     string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                    string cacheDir = Path.Combine(appData, "BingWallTray");
+                    string cacheDir = Path.Combine(appData, "WallTray");
                     if (!Directory.Exists(cacheDir)) Directory.CreateDirectory(cacheDir);
                     string cachePath = Path.Combine(cacheDir, "today_cache.json");
                     string json = JsonSerializer.Serialize(latestImages);
@@ -422,7 +422,7 @@ namespace BingWallTray.App.Services
                     _appState.IsChecking = false;
                     if (settings.ShowNotifications)
                     {
-                        _notificationService.ShowInfo("BingWallTray", "Новые обои скачаны, но не установлены из-за фиксации.");
+                        _notificationService.ShowInfo("WallTray", "Новые обои скачаны, но не установлены из-за фиксации.");
                     }
                     settings.LastAutoAppliedDate = todayImage.StartDate;
                     await _settingsService.SaveAsync(settings);

@@ -79,7 +79,7 @@ namespace BingWallTray.App.Services
             _notifyIcon = new NotifyIcon
             {
                 Icon = trayIcon,
-                Text = "BingWallTray",
+                Text = "WallTray",
                 Visible = true
             };
 

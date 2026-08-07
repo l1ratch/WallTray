@@ -81,7 +81,7 @@ namespace BingWallTray.App.Services
                     // Ищем установщик в прикрепленных ассетах релиза
                     if (releaseInfo.Assets != null)
                     {
-                        var setupAsset = releaseInfo.Assets.FirstOrDefault(a => a.Name.Equals("BingWallTraySetup.exe", StringComparison.OrdinalIgnoreCase));
+                        var setupAsset = releaseInfo.Assets.FirstOrDefault(a => a.Name.Equals("WallTraySetup.exe", StringComparison.OrdinalIgnoreCase));
                         if (setupAsset != null)
                         {
                             result.DownloadUrl = setupAsset.BrowserDownloadUrl;
@@ -124,7 +124,7 @@ namespace BingWallTray.App.Services
                     response.EnsureSuccessStatusCode();
 
                     long? totalBytes = response.Content.Headers.ContentLength;
-                    string tempPath = Path.Combine(Path.GetTempPath(), "BingWallTraySetup.exe");
+                    string tempPath = Path.Combine(Path.GetTempPath(), "WallTraySetup.exe");
 
                     using (var contentStream = await response.Content.ReadAsStreamAsync())
                     using (var fileStream = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true))

@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:BingWallTray.App"
         mc:Ignorable="d"
-        Title="BingWallTray" Height="680" Width="460" Icon="pack://application:,,,/Assets/logo.png"
+        Title="WallTray" Height="680" Width="460" Icon="pack://application:,,,/Assets/logo.png"
         WindowStyle="None" AllowsTransparency="True" Background="Transparent"
         ShowInTaskbar="False" Topmost="True" Activated="Window_Activated">
     
@@ -730,7 +730,7 @@
 
                                     <!-- Кнопка Spotlight -->
                                     <Button Command="{Binding SwitchSourceCommand}" CommandParameter="Spotlight" Width="100" Height="28" Margin="4,0,0,0" Cursor="Hand"
-                                            Visibility="{Binding EnableExtraSources, Converter={StaticResource BoolToVisibility}}">
+                                            Visibility="Collapsed">
                                         <Button.Template>
                                             <ControlTemplate TargetType="Button">
                                                 <Border x:Name="bg" CornerRadius="15" Background="Transparent">
@@ -920,7 +920,7 @@
                             <TextBlock Text="Стандартные источники (Bing и Windows)" Foreground="#a0a0a0" FontSize="11" FontWeight="SemiBold" Margin="4,0,0,6"/>
                             <Border Background="#202020" BorderBrush="#2d2d2d" BorderThickness="1" CornerRadius="6" Padding="14,12" Margin="0,0,0,12">
                                 <StackPanel>
-                                    <CheckBox Style="{StaticResource SettingsCheckBoxStyle}" IsChecked="{Binding EnableExtraSources}" Content="Включить нативные обои &quot;Windows: интересное&quot;" Margin="0,0,0,6"/>
+                                    <CheckBox Style="{StaticResource SettingsCheckBoxStyle}" IsChecked="{Binding EnableExtraSources}" Content="Включить нативные обои &quot;Windows: интересное&quot;" Margin="0,0,0,6" Visibility="Collapsed"/>
                                     <CheckBox Style="{StaticResource SettingsCheckBoxStyle}" IsChecked="{Binding EnableHistoricalArchive}" Content="Загружать прошлые обои из архива GitHub" Margin="0,0,0,8"/>
                                     
                                     <Grid>
@@ -1197,8 +1197,8 @@
                             <!-- Логотип и Название -->
                             <StackPanel Margin="0,20,0,25" HorizontalAlignment="Center">
                                 <Image Source="pack://application:,,,/Assets/logo.png" Width="96" Height="96" HorizontalAlignment="Center" Margin="0,0,0,14"/>
-                                <TextBlock Text="BingWallTray" Foreground="#ffffff" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center"/>
-                                <TextBlock Text="Автоматическая смена обоев Bing" Foreground="#888888" FontSize="12" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                                <TextBlock Text="WallTray" Foreground="#ffffff" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Автоматическая смена обоев" Foreground="#888888" FontSize="12" HorizontalAlignment="Center" Margin="0,4,0,0"/>
                             </StackPanel>
 
                             <!-- Обновления (GitHub) -->

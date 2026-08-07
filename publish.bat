@@ -5,7 +5,7 @@ dotnet publish BingWallTray.App\BingWallTray.App.csproj -c Release -r win-x64 --
 if %ERRORLEVEL% equ 0 (
     echo.
     echo Сборка успешно завершена!
-    echo Файл находится в папке: publish\BingWallTray.App.exe
+    echo Файл находится в папке: publish\WallTray.exe
 ) else (
     echo.
     echo Ошибка сборки! Проверьте логи выше.

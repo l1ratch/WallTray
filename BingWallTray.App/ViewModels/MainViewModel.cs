@@ -102,7 +102,7 @@ namespace BingWallTray.App.ViewModels
                     "About" => "О программе",
                     "Favorites" => "Избранное",
                     "ImageDetails" => "Детали обоев",
-                    _ => "BingWallTray"
+                    _ => "WallTray"
                 };
             }
         }
@@ -122,7 +122,9 @@ namespace BingWallTray.App.ViewModels
             get => _currentSource;
             set
             {
-                if (SetProperty(ref _currentSource, value))
+                // ponytail: Spotlight is hidden, fallback to Bing
+                string target = value == "Spotlight" ? "Bing" : value;
+                if (SetProperty(ref _currentSource, target))
                 {
                     OnPropertyChanged(nameof(IsBingSourceActive));
                     OnPropertyChanged(nameof(IsSpotlightSourceActive));
@@ -136,7 +138,7 @@ namespace BingWallTray.App.ViewModels
         public bool IsSpotlightSourceActive => CurrentSource == "Spotlight";
         public bool IsWallhavenSourceActive => CurrentSource == "Wallhaven";
 
-        public bool ShowSourceSelector => Settings.EnableExtraSources || Settings.EnableWallhaven;
+        public bool ShowSourceSelector => Settings.EnableWallhaven;
 
         public ObservableCollection<BingImage> DisplayedImages
         {
@@ -844,7 +846,8 @@ namespace BingWallTray.App.ViewModels
 
             TodayImages = new ObservableCollection<BingImage>(list);
 
-            if (Settings.EnableExtraSources)
+            // ponytail: Spotlight is temporarily disabled/hidden, skip fetching
+            if (false)
             {
                 try
                 {
@@ -1393,7 +1396,7 @@ namespace BingWallTray.App.ViewModels
             try
             {
                 string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                string logFolder = Path.Combine(appData, "BingWallTray", "Logs");
+                string logFolder = Path.Combine(appData, "WallTray", "Logs");
                 if (Directory.Exists(logFolder))
                 {
                     var files = Directory.GetFiles(logFolder, "*.log");
@@ -1510,7 +1513,7 @@ namespace BingWallTray.App.ViewModels
             try
             {
                 string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                string logFolder = Path.Combine(appData, "BingWallTray", "Logs");
+                string logFolder = Path.Combine(appData, "WallTray", "Logs");
                 if (Directory.Exists(logFolder))
                 {
                     System.Diagnostics.Process.Start("explorer.exe", $"\"{logFolder}\"");

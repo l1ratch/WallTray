@@ -32,7 +32,7 @@ namespace BingWallTray.App.Services
             _dateTimeProvider = dateTimeProvider;
             
             string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            _appDataFolder = Path.Combine(appData, "BingWallTray");
+            _appDataFolder = Path.Combine(appData, "WallTray");
             _settingsFilePath = Path.Combine(_appDataFolder, "settings.json");
 
             CurrentSettings = new AppSettings();
