@@ -157,6 +157,26 @@ namespace BingWallTray.App
                 _wallhavenService
             );
 
+            // ponytail: CLI mode to set wallpaper and exit immediately
+            bool isSetAndExitArg = e.Args.Contains("--set-and-exit") || e.Args.Contains("/set-and-exit");
+            if (isSetAndExitArg)
+            {
+                _logger.LogInfo("Запуск в режиме командной строки --set-and-exit.");
+                try
+                {
+                    await _schedulerService.StartAutoCheckAsync(isManual: false, isStartup: true);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError("Ошибка в режиме CLI --set-and-exit", ex);
+                }
+                finally
+                {
+                    ShutdownApplication();
+                }
+                return;
+            }
+
             // 6. Инициализация системного трея
             _trayService = new TrayService(_logger, _notificationService);
             _trayService.Initialize();
