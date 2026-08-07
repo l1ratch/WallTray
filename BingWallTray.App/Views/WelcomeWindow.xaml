@@ -1,7 +1,7 @@
 <Window x:Class="BingWallTray.App.Views.WelcomeWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Добро пожаловать" Width="430" Height="480" Icon="pack://application:,,,/Assets/logo.png"
+        Title="Добро пожаловать" Width="430" SizeToContent="Height" Icon="pack://application:,,,/Assets/logo.png"
         WindowStyle="None" AllowsTransparency="True" Background="Transparent"
         ResizeMode="NoResize" WindowStartupLocation="CenterScreen" ShowInTaskbar="True" Topmost="True"
         MouseLeftButtonDown="Window_MouseLeftButtonDown">
