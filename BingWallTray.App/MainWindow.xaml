@@ -553,8 +553,13 @@
                             <ListBox.Template>
                                 <ControlTemplate TargetType="ListBox">
                                     <ScrollViewer Focusable="False" Style="{StaticResource SettingsScrollViewerStyle}">
-                                        <ItemsPresenter Margin="0,42,0,0"/>
+                                        <ItemsPresenter x:Name="Presenter" Margin="0,0,0,0"/>
                                     </ScrollViewer>
+                                    <ControlTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding ShowSourceSelector}" Value="True">
+                                            <Setter TargetName="Presenter" Property="Margin" Value="0,42,0,0"/>
+                                        </DataTrigger>
+                                    </ControlTemplate.Triggers>
                                 </ControlTemplate>
                             </ListBox.Template>
                             <ListBox.ItemsPanel>
