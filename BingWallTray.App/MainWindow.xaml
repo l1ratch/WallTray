@@ -124,30 +124,6 @@
             </Setter>
         </Style>
 
-        <Style x:Key="MoreMenuItemStyle" TargetType="Button">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#e0e0e0"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Height" Value="36"/>
-            <Setter Property="Padding" Value="12,0"/>
-            <Setter Property="HorizontalContentAlignment" Value="Left"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="menuItem" Background="{TemplateBinding Background}" CornerRadius="5">
-                            <ContentPresenter Margin="{TemplateBinding Padding}" VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="menuItem" Property="Background" Value="#353535"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
         <Style x:Key="RoundIconButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="#2d2d2d"/>
             <Setter Property="BorderThickness" Value="0"/>
@@ -1256,33 +1232,12 @@
                     </StackPanel>
                 </Button>
 
-                <Grid Grid.Column="3">
-                    <Button x:Name="MoreButton" Style="{StaticResource DockNavButtonStyle}" Tag="{Binding IsNavMoreActive}" Command="{Binding ToggleMoreMenuCommand}">
-                        <StackPanel HorizontalAlignment="Center">
-                            <Path Data="{StaticResource IconMore}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="18" Height="18" Stretch="Uniform" HorizontalAlignment="Center"/>
-                            <TextBlock Text="Ещё" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" FontSize="10" Margin="0,3,0,0"/>
-                        </StackPanel>
-                    </Button>
-                    <Popup PlacementTarget="{Binding ElementName=MoreButton}" Placement="Top" StaysOpen="False" AllowsTransparency="True"
-                           IsOpen="{Binding IsMoreMenuOpen}" PopupAnimation="Fade">
-                        <Border Background="#252525" BorderBrush="#454545" BorderThickness="1" CornerRadius="8" Padding="4" Margin="0,0,0,8" Width="180">
-                            <StackPanel>
-                                <Button Style="{StaticResource MoreMenuItemStyle}" Command="{Binding GoToAboutCommand}">
-                                    <StackPanel Orientation="Horizontal">
-                                        <Path Data="{StaticResource IconInfo}" Fill="#cccccc" Width="15" Height="15" Stretch="Uniform" Margin="0,0,10,0"/>
-                                        <TextBlock Text="О программе" VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                </Button>
-                                <Button Style="{StaticResource MoreMenuItemStyle}" Command="{Binding GoToSettingsCommand}">
-                                    <StackPanel Orientation="Horizontal">
-                                        <Path Data="{StaticResource IconSettings}" Fill="#cccccc" Width="15" Height="15" Stretch="Uniform" Margin="0,0,10,0"/>
-                                        <TextBlock Text="Настройки" VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                </Button>
-                            </StackPanel>
-                        </Border>
-                    </Popup>
-                </Grid>
+                <Button Grid.Column="3" Style="{StaticResource DockNavButtonStyle}" Tag="{Binding IsNavMoreActive}" Command="{Binding GoToAboutCommand}">
+                    <StackPanel HorizontalAlignment="Center">
+                        <Path Data="{StaticResource IconMore}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="18" Height="18" Stretch="Uniform" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Другое" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" FontSize="10" Margin="0,3,0,0"/>
+                    </StackPanel>
+                </Button>
             </Grid>
 
         </Grid>
