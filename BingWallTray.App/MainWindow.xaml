@@ -565,7 +565,6 @@
                     <RowDefinition Height="Auto"/> <!-- Шапка -->
                     <RowDefinition Height="*"/>    <!-- Содержимое страниц -->
                     <RowDefinition Height="Auto"/> <!-- Нижняя навигация -->
-                    <RowDefinition Height="Auto"/> <!-- Подвал статуса -->
             </Grid.RowDefinitions>
 
             <!-- 1. ШАПКА -->
@@ -1251,51 +1250,6 @@
                 </Grid>
             </Grid>
 
-            <!-- 4. ПОДВАЛ СТАТУСА -->
-            <Grid Grid.Row="3" Margin="0,6,0,0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                
-                <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" Foreground="#a0a0a0" FontSize="10" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                
-                <Grid Grid.Column="1" VerticalAlignment="Center">
-                    <!-- Анимированный индикатор загрузки -->
-                    <StackPanel Orientation="Horizontal" Visibility="{Binding IsDownloading, Converter={StaticResource BoolToVisibility}}">
-                        <TextBlock Text="⚙" Foreground="#0078d4" FontSize="11" VerticalAlignment="Center" Margin="0,0,4,0">
-                            <TextBlock.RenderTransform>
-                                <RotateTransform Angle="0" CenterX="5.5" CenterY="5.5"/>
-                            </TextBlock.RenderTransform>
-                            <TextBlock.Triggers>
-                                <EventTrigger RoutedEvent="FrameworkElement.Loaded">
-                                    <BeginStoryboard>
-                                        <Storyboard>
-                                            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)"
-                                                             From="0" To="360" Duration="0:0:1.5" RepeatBehavior="Forever"/>
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </EventTrigger>
-                            </TextBlock.Triggers>
-                        </TextBlock>
-                        <TextBlock Text="Загрузка..." Foreground="#0078d4" FontSize="10" VerticalAlignment="Center"/>
-                    </StackPanel>
-
-                    <!-- Время последнего обновления (скрывается во время загрузки) -->
-                    <TextBlock Text="{Binding LastUpdateText}" Foreground="#666666" FontSize="10" VerticalAlignment="Center">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="Visibility" Value="Visible"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsDownloading}" Value="True">
-                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </TextBlock.Style>
-                    </TextBlock>
-                </Grid>
-            </Grid>
         </Grid>
     </Border>
 </Window>
