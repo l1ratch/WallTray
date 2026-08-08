@@ -1,8 +1,28 @@
 <Application x:Class="BingWallTray.App.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:BingWallTray.App">
+             xmlns:local="clr-namespace:BingWallTray.App"
+             xmlns:utils="clr-namespace:BingWallTray.App.Utils">
     <Application.Resources>
-         
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
+        <utils:InverseBoolConverter x:Key="InverseBoolConverter"/>
+        <SolidColorBrush x:Key="AppBackgroundBrush" Color="#F7F7F8"/>
+        <SolidColorBrush x:Key="SurfaceBrush" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="SurfaceAltBrush" Color="#F0F0F2"/>
+        <SolidColorBrush x:Key="BorderBrush" Color="#D8D8DC"/>
+        <SolidColorBrush x:Key="TextBrush" Color="#1D1D20"/>
+        <SolidColorBrush x:Key="MutedTextBrush" Color="#68686F"/>
+        <SolidColorBrush x:Key="AccentBrush" Color="#1769E0"/>
+        <SolidColorBrush x:Key="AccentSoftBrush" Color="#DCE9FF"/>
+        <SolidColorBrush x:Key="DangerBrush" Color="#C93636"/>
+        <SolidColorBrush x:Key="SuccessBrush" Color="#2E7D32"/>
+
+        <Style TargetType="TextBox">
+            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,7"/>
+        </Style>
     </Application.Resources>
 </Application>

@@ -36,7 +36,8 @@ namespace BingWallTray.App.Services
             _logger = logger;
             if (!_httpClient.DefaultRequestHeaders.Contains("User-Agent"))
             {
-                _httpClient.DefaultRequestHeaders.Add("User-Agent", "BingWallTray-Updater/1.0.0");
+                var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "2026.8.0";
+                _httpClient.DefaultRequestHeaders.Add("User-Agent", $"BingWallTray-Updater/{version}");
             }
         }
 
@@ -46,7 +47,7 @@ namespace BingWallTray.App.Services
             
             // Получаем текущую версию сборки
             var currentVer = Assembly.GetExecutingAssembly().GetName().Version;
-            result.CurrentVersion = currentVer?.ToString(3) ?? "1.0.0";
+            result.CurrentVersion = currentVer?.ToString(3) ?? "2026.8.0";
 
             string url = $"https://api.github.com/repos/{repoOwner}/{repoName}/releases/latest";
             _logger.LogInfo($"Проверка обновлений на GitHub по адресу: {url}");
@@ -73,7 +74,8 @@ namespace BingWallTray.App.Services
                 }
 
                 string tag = releaseInfo.TagName.TrimStart('v', 'V');
-                if (Version.TryParse(tag, out Version? latestVer))
+                string versionPart = tag.Contains('-') ? tag.Split('-')[0] : tag;
+                if (Version.TryParse(versionPart, out Version? latestVer))
                 {
                     result.NewVersion = latestVer.ToString(3);
                     result.ReleaseUrl = releaseInfo.HtmlUrl;

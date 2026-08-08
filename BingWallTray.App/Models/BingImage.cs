@@ -35,6 +35,10 @@ namespace BingWallTray.App.Models
         [JsonIgnore]
         public string Market { get; set; } = string.Empty;
 
+        // Источник изображения (Bing, Wallhaven)
+        [JsonIgnore]
+        public string Source { get; set; } = "Bing";
+
         private bool _isApplied;
 
         [JsonIgnore]

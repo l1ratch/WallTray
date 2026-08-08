@@ -29,8 +29,10 @@ namespace BingWallTray.App.Models
         [JsonPropertyName("localPath")]
         public string LocalPath { get; set; } = string.Empty;
 
+        // ponytail: computed once by HistoryService.MapToHistoryItem instead of a File.Exists getter,
+        // which was being re-evaluated (sync disk I/O) on every WPF data-bind pass
         [JsonIgnore]
-        public string DisplayPath => System.IO.File.Exists(LocalPath) ? LocalPath : RemoteUrl;
+        public string DisplayPath { get; set; } = string.Empty;
 
         [JsonPropertyName("downloadedAtUtc")]
         public DateTime? DownloadedAtUtc { get; set; }

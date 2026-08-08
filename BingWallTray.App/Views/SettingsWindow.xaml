@@ -1,0 +1,270 @@
+<Window x:Class="BingWallTray.App.Views.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Параметры WallTray" Width="1100" Height="760" MinWidth="940" MinHeight="620"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent" ShowInTaskbar="True">
+    <Window.Resources>
+        <Style x:Key="NavItem" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/><Setter Property="Foreground" Value="{DynamicResource MutedTextBrush}"/><Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="14,9,10,9"/><Setter Property="Margin" Value="0,1"/><Setter Property="FontSize" Value="13"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/><Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="root" Background="{TemplateBinding Background}" CornerRadius="6">
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="3"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                <Border x:Name="bar" Grid.Column="0" Background="Transparent" CornerRadius="2" Margin="0,3,0,3"/>
+                                <ContentPresenter Grid.Column="1" Margin="{TemplateBinding Padding}" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="root" Property="Background" Value="{DynamicResource SurfaceAltBrush}"/></Trigger>
+                            <Trigger Property="Tag" Value="True">
+                                <Setter TargetName="root" Property="Background" Value="{DynamicResource SurfaceAltBrush}"/>
+                                <Setter TargetName="bar" Property="Background" Value="{DynamicResource AccentBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="GroupHeader" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource MutedTextBrush}"/><Setter Property="FontSize" Value="10.5"/>
+            <Setter Property="FontWeight" Value="Bold"/><Setter Property="Margin" Value="14,20,0,6"/>
+        </Style>
+        <Style x:Key="SectionLabel" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource MutedTextBrush}"/><Setter Property="FontSize" Value="10.5"/>
+            <Setter Property="FontWeight" Value="SemiBold"/><Setter Property="Margin" Value="0,18,0,8"/>
+        </Style>
+        <Style x:Key="PageTitle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/><Setter Property="FontSize" Value="23"/><Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style x:Key="PageSubtitle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource MutedTextBrush}"/><Setter Property="Margin" Value="0,5,0,20"/>
+        </Style>
+        <Style x:Key="SettingsCard" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/><Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/><Setter Property="Padding" Value="16"/><Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+        <Style x:Key="ToggleSwitch" TargetType="CheckBox">
+            <Setter Property="Width" Value="42"/><Setter Property="Height" Value="24"/><Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <Grid Width="42" Height="24">
+                            <Border x:Name="track" Background="{DynamicResource BorderBrush}" CornerRadius="12"/>
+                            <Border x:Name="thumb" Width="18" Height="18" Background="White" CornerRadius="9" HorizontalAlignment="Left" Margin="3"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True"><Setter TargetName="track" Property="Background" Value="{DynamicResource AccentBrush}"/><Setter TargetName="thumb" Property="HorizontalAlignment" Value="Right"/></Trigger>
+                            <Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.45"/></Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="SecondaryButton" TargetType="Button"><Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}"/><Setter Property="Foreground" Value="{DynamicResource TextBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/><Setter Property="BorderThickness" Value="1"/><Setter Property="Padding" Value="12,7"/><Setter Property="Cursor" Value="Hand"/></Style>
+        <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource SecondaryButton}"><Setter Property="Background" Value="{DynamicResource AccentBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/><Setter Property="Foreground" Value="White"/></Style>
+        <Style x:Key="LinkButton" TargetType="Button" BasedOn="{StaticResource SecondaryButton}"><Setter Property="HorizontalContentAlignment" Value="Left"/><Setter Property="Height" Value="34"/></Style>
+        <Style TargetType="TextBox"><Setter Property="Foreground" Value="{DynamicResource TextBrush}"/><Setter Property="Background" Value="{DynamicResource AppBackgroundBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/><Setter Property="BorderThickness" Value="1"/><Setter Property="Padding" Value="9,6"/></Style>
+        <Style TargetType="ComboBox"><Setter Property="Foreground" Value="{DynamicResource TextBrush}"/><Setter Property="Background" Value="{DynamicResource AppBackgroundBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/><Setter Property="Padding" Value="8,5"/></Style>
+    </Window.Resources>
+    <Border Margin="8" Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="10">
+        <Grid>
+            <Grid.RowDefinitions><RowDefinition Height="60"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+            <Border Grid.Row="0" Padding="22,0" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1" MouseDown="TitleBar_MouseDown">
+                <Grid><StackPanel VerticalAlignment="Center"><TextBlock Text="Параметры" Foreground="{DynamicResource TextBrush}" FontSize="18" FontWeight="SemiBold"/><TextBlock Text="WallTray" Foreground="{DynamicResource MutedTextBrush}" FontSize="11" Margin="0,2,0,0"/></StackPanel><Button Command="{Binding CloseWindowCommand}" Content="×" Width="38" Height="38" HorizontalAlignment="Right" VerticalAlignment="Center" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource MutedTextBrush}" FontSize="22" ToolTip="Закрыть"/></Grid>
+            </Border>
+            <Grid Grid.Row="1"><Grid.ColumnDefinitions><ColumnDefinition Width="230"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                <Border Grid.Column="0" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,0">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel Margin="6,10">
+                        <TextBlock Text="ОБЩИЕ" Style="{StaticResource GroupHeader}" Margin="14,0,0,6"/>
+                        <Button Style="{StaticResource NavItem}" Command="{Binding SelectPageCommand}" CommandParameter="0" Tag="{Binding IsPageBehavior}"><TextBlock Text="Поведение"/></Button>
+                        <Button Style="{StaticResource NavItem}" Command="{Binding SelectPageCommand}" CommandParameter="1" Tag="{Binding IsPageStartup}"><TextBlock Text="Запуск и уведомления"/></Button>
+                        <TextBlock Text="ИСТОЧНИКИ" Style="{StaticResource GroupHeader}"/>
+                        <Button Style="{StaticResource NavItem}" Command="{Binding SelectPageCommand}" CommandParameter="2" Tag="{Binding IsPageBing}"><TextBlock Text="Bing"/></Button>
+                        <Button Style="{StaticResource NavItem}" Command="{Binding SelectPageCommand}" CommandParameter="3" Tag="{Binding IsPageWallhaven}"><TextBlock Text="Wallhaven"/></Button>
+                        <TextBlock Text="АВТОСМЕНА" Style="{StaticResource GroupHeader}"/>
+                        <Button Style="{StaticResource NavItem}" Command="{Binding SelectPageCommand}" CommandParameter="4" Tag="{Binding IsPageAutoChange}"><TextBlock Text="Расписание"/></Button>
+                        <TextBlock Text="ДАННЫЕ И ЖУРНАЛЫ" Style="{StaticResource GroupHeader}"/>
+                        <Button Style="{StaticResource NavItem}" Command="{Binding SelectPageCommand}" CommandParameter="5" Tag="{Binding IsPageStorage}"><TextBlock Text="Хранилище"/></Button>
+                        <Button Style="{StaticResource NavItem}" Command="{Binding SelectPageCommand}" CommandParameter="6" Tag="{Binding IsPageLogging}"><TextBlock Text="Журналы"/></Button>
+                        <TextBlock Text="ДИАГНОСТИКА" Style="{StaticResource GroupHeader}"/>
+                        <Button Style="{StaticResource NavItem}" Command="{Binding SelectPageCommand}" CommandParameter="7" Tag="{Binding IsPageDiagNetwork}"><TextBlock Text="Сеть и API"/></Button>
+                        <Button Style="{StaticResource NavItem}" Command="{Binding SelectPageCommand}" CommandParameter="8" Tag="{Binding IsPageDiagSystem}"><TextBlock Text="Система"/></Button>
+                        <Button Style="{StaticResource NavItem}" Command="{Binding SelectPageCommand}" CommandParameter="9" Tag="{Binding IsPageDiagLog}"><TextBlock Text="Журнал событий"/></Button>
+                        <TextBlock Text="О ПРОГРАММЕ" Style="{StaticResource GroupHeader}"/>
+                        <Button Style="{StaticResource NavItem}" Command="{Binding SelectPageCommand}" CommandParameter="10" Tag="{Binding IsPageAboutOverview}"><TextBlock Text="Обзор"/></Button>
+                        <Button Style="{StaticResource NavItem}" Command="{Binding SelectPageCommand}" CommandParameter="11" Tag="{Binding IsPageAboutUpdates}"><TextBlock Text="Обновления"/></Button>
+                        <Button Style="{StaticResource NavItem}" Command="{Binding SelectPageCommand}" CommandParameter="12" Tag="{Binding IsPageAboutLicenses}"><TextBlock Text="Лицензии"/></Button>
+                    </StackPanel></ScrollViewer>
+                </Border>
+                <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" Padding="36,28"><StackPanel MaxWidth="680">
+                    <StackPanel Visibility="{Binding IsPageBehavior,Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="Поведение" Style="{StaticResource PageTitle}"/><TextBlock Text="Базовые настройки обоев и проверки новых изображений" Style="{StaticResource PageSubtitle}"/>
+                        <Border Style="{StaticResource SettingsCard}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <StackPanel><TextBlock Text="Стиль обоев" FontWeight="Medium"/><TextBlock Text="Выберите способ размещения изображения на рабочем столе" Foreground="{DynamicResource MutedTextBrush}" FontSize="11.5" Margin="0,3,0,0"/></StackPanel>
+                            <ComboBox Grid.Column="1" Width="160" SelectedValuePath="Tag" SelectedValue="{Binding WallpaperStyle}"><ComboBoxItem Content="Заполнить" Tag="Fill"/><ComboBoxItem Content="По размеру" Tag="Fit"/><ComboBoxItem Content="Растянуть" Tag="Stretch"/><ComboBoxItem Content="Замостить" Tag="Tile"/><ComboBoxItem Content="По центру" Tag="Center"/><ComboBoxItem Content="Расширить" Tag="Span"/></ComboBox>
+                        </Grid></Border>
+                        <Border Style="{StaticResource SettingsCard}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <StackPanel><TextBlock Text="Интервал проверки" FontWeight="Medium"/><TextBlock Text="Как часто проверять появление новых обоев (в часах)" Foreground="{DynamicResource MutedTextBrush}" FontSize="11.5" Margin="0,3,0,0"/></StackPanel>
+                            <TextBox Grid.Column="1" Width="90" Text="{Binding CheckIntervalHours,UpdateSourceTrigger=PropertyChanged}"/>
+                        </Grid></Border>
+                    </StackPanel>
+                    <StackPanel Visibility="{Binding IsPageStartup,Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="Запуск и уведомления" Style="{StaticResource PageTitle}"/><TextBlock Text="Автозапуск, сворачивание в трей и всплывающие оповещения" Style="{StaticResource PageSubtitle}"/>
+                        <Border Style="{StaticResource SettingsCard}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <StackPanel><TextBlock Text="Автозапуск при входе" FontWeight="Medium"/><TextBlock Text="Запускать WallTray автоматически при входе в систему" Foreground="{DynamicResource MutedTextBrush}" FontSize="11.5" Margin="0,3,0,0"/></StackPanel>
+                            <CheckBox Grid.Column="1" IsChecked="{Binding IsStartupEnabled}" Style="{StaticResource ToggleSwitch}" VerticalAlignment="Center"/>
+                        </Grid></Border>
+                        <Border Style="{StaticResource SettingsCard}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <StackPanel><TextBlock Text="Запуск свернуто" FontWeight="Medium"/><TextBlock Text="Сворачивать главное окно при запуске приложения" Foreground="{DynamicResource MutedTextBrush}" FontSize="11.5" Margin="0,3,0,0"/></StackPanel>
+                            <CheckBox Grid.Column="1" IsChecked="{Binding StartMinimizedToTray}" Style="{StaticResource ToggleSwitch}" VerticalAlignment="Center"/>
+                        </Grid></Border>
+                        <Border Style="{StaticResource SettingsCard}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <StackPanel><TextBlock Text="Показывать уведомления" FontWeight="Medium"/><TextBlock Text="Всплывающие оповещения о новых обоях и событиях" Foreground="{DynamicResource MutedTextBrush}" FontSize="11.5" Margin="0,3,0,0"/></StackPanel>
+                            <CheckBox Grid.Column="1" IsChecked="{Binding ShowNotifications}" Style="{StaticResource ToggleSwitch}" VerticalAlignment="Center"/>
+                        </Grid></Border>
+                    </StackPanel>
+                    <StackPanel Visibility="{Binding IsPageBing,Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="Источник: Bing" Style="{StaticResource PageTitle}"/><TextBlock Text="Настройка загрузки обоев из Bing Image of the Day" Style="{StaticResource PageSubtitle}"/>
+                        <Border Style="{StaticResource SettingsCard}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <StackPanel><TextBlock Text="Регион Bing (Market)" FontWeight="Medium"/><TextBlock Text="Код региона для получения локализованного контента" Foreground="{DynamicResource MutedTextBrush}" FontSize="11.5" Margin="0,3,0,0"/></StackPanel>
+                            <ComboBox Grid.Column="1" Width="140" IsEditable="True" Text="{Binding Market,UpdateSourceTrigger=PropertyChanged}"><ComboBoxItem Content="en-US"/><ComboBoxItem Content="ru-RU"/><ComboBoxItem Content="de-DE"/><ComboBoxItem Content="fr-FR"/><ComboBoxItem Content="ja-JP"/></ComboBox>
+                        </Grid></Border>
+                        <Border Style="{StaticResource SettingsCard}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <StackPanel><TextBlock Text="Использовать UHD" FontWeight="Medium"/><TextBlock Text="Загружать обои в разрешении UHD (3840×2160)" Foreground="{DynamicResource MutedTextBrush}" FontSize="11.5" Margin="0,3,0,0"/></StackPanel>
+                            <CheckBox Grid.Column="1" IsChecked="{Binding UseUhd}" Style="{StaticResource ToggleSwitch}" VerticalAlignment="Center"/>
+                        </Grid></Border>
+                        <Border Style="{StaticResource SettingsCard}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <StackPanel><TextBlock Text="Исторический архив" FontWeight="Medium"/><TextBlock Text="Загружать предыдущие обои Bing из архива" Foreground="{DynamicResource MutedTextBrush}" FontSize="11.5" Margin="0,3,0,0"/></StackPanel>
+                            <CheckBox Grid.Column="1" IsChecked="{Binding EnableHistoricalArchive}" Style="{StaticResource ToggleSwitch}" VerticalAlignment="Center"/>
+                        </Grid></Border>
+                        <Border Style="{StaticResource SettingsCard}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <StackPanel><TextBlock Text="Автопроверка новых" FontWeight="Medium"/><TextBlock Text="Периодически проверять появление новых Bing-обоев" Foreground="{DynamicResource MutedTextBrush}" FontSize="11.5" Margin="0,3,0,0"/></StackPanel>
+                            <CheckBox Grid.Column="1" IsChecked="{Binding AutoCheckBingEnabled}" Style="{StaticResource ToggleSwitch}" VerticalAlignment="Center"/>
+                        </Grid></Border>
+                    </StackPanel>
+                    <StackPanel Visibility="{Binding IsPageWallhaven,Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="Источник: Wallhaven" Style="{StaticResource PageTitle}"/><TextBlock Text="Загрузка обоев из каталога Wallhaven.cc" Style="{StaticResource PageSubtitle}"/>
+                        <Border Style="{StaticResource SettingsCard}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <StackPanel><TextBlock Text="Включить Wallhaven" FontWeight="Medium"/><TextBlock Text="Добавить источник Wallhaven в список" Foreground="{DynamicResource MutedTextBrush}" FontSize="11.5" Margin="0,3,0,0"/></StackPanel>
+                            <CheckBox Grid.Column="1" IsChecked="{Binding EnableWallhaven}" Style="{StaticResource ToggleSwitch}" VerticalAlignment="Center"/>
+                        </Grid></Border>
+                        <Border Style="{StaticResource SettingsCard}"><StackPanel><TextBlock Text="Поисковый запрос" FontWeight="Medium"/><TextBlock Text="Ключевые слова для фильтрации обоев (оставьте пустым для любых)" Foreground="{DynamicResource MutedTextBrush}" FontSize="11.5" Margin="0,3,0,8"/><TextBox Text="{Binding WallhavenQuery,UpdateSourceTrigger=PropertyChanged}"/></StackPanel></Border>
+                        <Border Style="{StaticResource SettingsCard}"><StackPanel><TextBlock Text="Категории" FontWeight="Medium"/><TextBlock Text="Коды категорий (general, anime, people), разделённые запятой" Foreground="{DynamicResource MutedTextBrush}" FontSize="11.5" Margin="0,3,0,8"/><TextBox Text="{Binding WallhavenCategories,UpdateSourceTrigger=PropertyChanged}"/></StackPanel></Border>
+                        <Border Style="{StaticResource SettingsCard}"><StackPanel><TextBlock Text="Разрешения" FontWeight="Medium"/><TextBlock Text="Например: 1920x1080, 3840x2160 (разделитель: запятая)" Foreground="{DynamicResource MutedTextBrush}" FontSize="11.5" Margin="0,3,0,8"/><TextBox Text="{Binding WallhavenResolutions,UpdateSourceTrigger=PropertyChanged}"/></StackPanel></Border>
+                    </StackPanel>
+                    <StackPanel Visibility="{Binding IsPageAutoChange,Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="Автосмена обоев" Style="{StaticResource PageTitle}"/><TextBlock Text="Автоматическая смена обоев по расписанию или событиям" Style="{StaticResource PageSubtitle}"/>
+                        <Border Style="{StaticResource SettingsCard}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <StackPanel><TextBlock Text="Включить автосмену" FontWeight="Medium"/><TextBlock Text="Активировать автоматическую смену обоев" Foreground="{DynamicResource MutedTextBrush}" FontSize="11.5" Margin="0,3,0,0"/></StackPanel>
+                            <CheckBox Grid.Column="1" IsChecked="{Binding AutoChangeEnabled}" Style="{StaticResource ToggleSwitch}" VerticalAlignment="Center"/>
+                        </Grid></Border>
+                        <Border Style="{StaticResource SettingsCard}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <StackPanel><TextBlock Text="Источник для автосмены" FontWeight="Medium"/><TextBlock Text="Откуда брать обои при автосмене" Foreground="{DynamicResource MutedTextBrush}" FontSize="11.5" Margin="0,3,0,0"/></StackPanel>
+                            <ComboBox Grid.Column="1" Width="160" SelectedValuePath="Tag" SelectedValue="{Binding AutoChangeSource}"><ComboBoxItem Content="Новые Bing" Tag="NewBing"/><ComboBoxItem Content="Случайные Bing" Tag="RandomBing"/><ComboBoxItem Content="Избранное" Tag="Favorites"/></ComboBox>
+                        </Grid></Border>
+                        <Border Style="{StaticResource SettingsCard}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <StackPanel><TextBlock Text="Условие запуска" FontWeight="Medium"/><TextBlock Text="Когда менять обои: по интервалу, при запуске или в обоих случаях" Foreground="{DynamicResource MutedTextBrush}" FontSize="11.5" Margin="0,3,0,0"/></StackPanel>
+                            <ComboBox Grid.Column="1" Width="160" SelectedValuePath="Tag" SelectedValue="{Binding AutoChangeTrigger}"><ComboBoxItem Content="По интервалу" Tag="Interval"/><ComboBoxItem Content="При запуске" Tag="Startup"/><ComboBoxItem Content="Интервал и запуск" Tag="Both"/></ComboBox>
+                        </Grid></Border>
+                        <Border Style="{StaticResource SettingsCard}" Visibility="{Binding IsIntervalTriggerVisible,Converter={StaticResource BoolToVisibility}}"><StackPanel><TextBlock Text="Интервал автосмены" FontWeight="Medium"/><TextBlock Text="Как часто менять обои при режиме Interval" Foreground="{DynamicResource MutedTextBrush}" FontSize="11.5" Margin="0,3,0,8"/><ComboBox SelectedValuePath="Content" SelectedValue="{Binding SelectedIntervalPreset}"><ComboBoxItem Content="30m"/><ComboBoxItem Content="1h"/><ComboBoxItem Content="6h"/><ComboBoxItem Content="12h"/><ComboBoxItem Content="24h"/><ComboBoxItem Content="Custom"/></ComboBox><TextBox Text="{Binding CustomIntervalString,UpdateSourceTrigger=PropertyChanged}" Visibility="{Binding IsCustomIntervalVisible,Converter={StaticResource BoolToVisibility}}" Margin="0,8,0,0"/></StackPanel></Border>
+                    </StackPanel>
+                    <StackPanel Visibility="{Binding IsPageStorage,Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="Хранилище" Style="{StaticResource PageTitle}"/><TextBlock Text="Папка загрузки и управлени локальным кэшем обоев" Style="{StaticResource PageSubtitle}"/>
+                        <Border Style="{StaticResource SettingsCard}"><StackPanel><TextBlock Text="Папка загрузки" FontWeight="Medium"/><TextBlock Text="Куда сохранять скачанные изображения обоев" Foreground="{DynamicResource MutedTextBrush}" FontSize="11.5" Margin="0,3,0,8"/><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBox Text="{Binding DownloadFolder}" IsReadOnly="True"/><Button Grid.Column="1" Content="Обзор..." Style="{StaticResource SecondaryButton}" Command="{Binding ChooseFolderCommand}" Margin="8,0,0,0"/></Grid></StackPanel></Border>
+                        <Border Style="{StaticResource SettingsCard}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <StackPanel><TextBlock Text="Размер кэша" FontWeight="Medium"/><TextBlock Text="{Binding CacheSizeString}" Foreground="{DynamicResource MutedTextBrush}" FontSize="11.5" Margin="0,3,0,0"/></StackPanel>
+                            <Button Grid.Column="1" Content="Очистить кэш" Style="{StaticResource SecondaryButton}" Command="{Binding ClearCacheCommand}"/>
+                        </Grid></Border>
+                        <Border Style="{StaticResource SettingsCard}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <StackPanel><TextBlock Text="Удалять старые изображения" FontWeight="Medium"/><TextBlock Text="Автоматически удалять старые не-избранные обои" Foreground="{DynamicResource MutedTextBrush}" FontSize="11.5" Margin="0,3,0,0"/></StackPanel>
+                            <CheckBox Grid.Column="1" IsChecked="{Binding DeleteOldImages}" Style="{StaticResource ToggleSwitch}" VerticalAlignment="Center"/>
+                        </Grid></Border>
+                        <Border Style="{StaticResource SettingsCard}" Visibility="{Binding DeleteOldImages,Converter={StaticResource BoolToVisibility}}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <StackPanel><TextBlock Text="Хранить последние N изображений" FontWeight="Medium"/><TextBlock Text="Количество последних обоев, которые не будут удалены" Foreground="{DynamicResource MutedTextBrush}" FontSize="11.5" Margin="0,3,0,0"/></StackPanel>
+                            <TextBox Grid.Column="1" Width="90" Text="{Binding KeepLastImages,UpdateSourceTrigger=PropertyChanged}"/>
+                        </Grid></Border>
+                    </StackPanel>
+                    <StackPanel Visibility="{Binding IsPageLogging,Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="Журналы" Style="{StaticResource PageTitle}"/><TextBlock Text="Настройки логирования и обслуживание файлов журнала" Style="{StaticResource PageSubtitle}"/>
+                        <Border Style="{StaticResource SettingsCard}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <StackPanel><TextBlock Text="Включить логирование" FontWeight="Medium"/><TextBlock Text="Записывать события приложения в файл журнала" Foreground="{DynamicResource MutedTextBrush}" FontSize="11.5" Margin="0,3,0,0"/></StackPanel>
+                            <CheckBox Grid.Column="1" IsChecked="{Binding LoggingEnabled}" Style="{StaticResource ToggleSwitch}" VerticalAlignment="Center"/>
+                        </Grid></Border>
+                        <Border Style="{StaticResource SettingsCard}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <StackPanel><TextBlock Text="Уровень логирования" FontWeight="Medium"/><TextBlock Text="Детальность записываемых сообщений" Foreground="{DynamicResource MutedTextBrush}" FontSize="11.5" Margin="0,3,0,0"/></StackPanel>
+                            <ComboBox Grid.Column="1" Width="140" SelectedValuePath="Content" SelectedValue="{Binding LogLevel}"><ComboBoxItem Content="Debug"/><ComboBoxItem Content="Info"/><ComboBoxItem Content="Warning"/><ComboBoxItem Content="Error"/></ComboBox>
+                        </Grid></Border>
+                        <Border Style="{StaticResource SettingsCard}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <StackPanel><TextBlock Text="Файлы журнала" FontWeight="Medium"/><TextBlock Text="Открыть папку с логами или удалить старые файлы" Foreground="{DynamicResource MutedTextBrush}" FontSize="11.5" Margin="0,3,0,0"/></StackPanel>
+                            <Button Grid.Column="1" Content="Открыть папку" Style="{StaticResource SecondaryButton}" Command="{Binding OpenLogsCommand}" Margin="0,0,8,0"/>
+                            <Button Grid.Column="2" Content="Очистить логи" Style="{StaticResource SecondaryButton}" Command="{Binding ClearLogsCommand}"/>
+                        </Grid></Border>
+                    </StackPanel>
+                    <StackPanel Visibility="{Binding IsPageDiagNetwork,Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="Диагностика: сеть и API" Style="{StaticResource PageTitle}"/><TextBlock Text="Проверка доступности интернета и API Bing" Style="{StaticResource PageSubtitle}"/>
+                        <Border Style="{StaticResource SettingsCard}"><StackPanel><TextBlock Text="Подключение к интернету" FontWeight="Medium"/><TextBlock Text="{Binding NetworkStatus}" Foreground="{DynamicResource MutedTextBrush}" FontSize="11.5" Margin="0,3,0,0"/></StackPanel></Border>
+                        <Border Style="{StaticResource SettingsCard}"><StackPanel><TextBlock Text="Bing API" FontWeight="Medium"/><TextBlock Text="{Binding BingApiStatus}" Foreground="{DynamicResource MutedTextBrush}" FontSize="11.5" Margin="0,3,0,0"/></StackPanel></Border>
+                        <Button Content="Повторить проверку" Style="{StaticResource SecondaryButton}" Command="{Binding RunDiagnosticsCommand}" HorizontalAlignment="Left" IsEnabled="{Binding IsRunningDiagnostics,Converter={StaticResource InverseBoolConverter}}"/>
+                    </StackPanel>
+                    <StackPanel Visibility="{Binding IsPageDiagSystem,Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="Диагностика: система" Style="{StaticResource PageTitle}"/><TextBlock Text="Сведения об окружении, в котором работает приложение" Style="{StaticResource PageSubtitle}"/>
+                        <Border Style="{StaticResource SettingsCard}"><StackPanel><TextBlock Text="Разрешение экрана" FontWeight="Medium"/><TextBlock Text="{Binding DisplayResolution}" Foreground="{DynamicResource MutedTextBrush}" FontSize="11.5" Margin="0,3,0,0"/></StackPanel></Border>
+                        <Border Style="{StaticResource SettingsCard}"><StackPanel><TextBlock Text="Версия ОС" FontWeight="Medium"/><TextBlock Text="{Binding OSVersion}" Foreground="{DynamicResource MutedTextBrush}" FontSize="11.5" Margin="0,3,0,0"/></StackPanel></Border>
+                        <Border Style="{StaticResource SettingsCard}"><StackPanel><TextBlock Text="Кэш изображений" FontWeight="Medium"/><TextBlock Text="{Binding CacheSizeString}" Foreground="{DynamicResource MutedTextBrush}" FontSize="11.5" Margin="0,3,0,0"/></StackPanel></Border>
+                    </StackPanel>
+                    <StackPanel Visibility="{Binding IsPageDiagLog,Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="Журнал событий" Style="{StaticResource PageTitle}"/><TextBlock Text="Последние 30 строк текущего лог-файла" Style="{StaticResource PageSubtitle}"/>
+                        <Border Style="{StaticResource SettingsCard}" Padding="12"><TextBox Text="{Binding DiagnosticsLogText,Mode=OneWay}" IsReadOnly="True" TextWrapping="NoWrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" FontFamily="Consolas" FontSize="11.5" Height="320" BorderThickness="0" Background="Transparent"/></Border>
+                        <Button Content="Обновить" Style="{StaticResource SecondaryButton}" Command="{Binding RunDiagnosticsCommand}" HorizontalAlignment="Left"/>
+                    </StackPanel>
+                    <StackPanel Visibility="{Binding IsPageAboutOverview,Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="О программе" Style="{StaticResource PageTitle}"/><TextBlock Text="Информация о версии и авторе" Style="{StaticResource PageSubtitle}"/>
+                        <Border Style="{StaticResource SettingsCard}"><StackPanel>
+                            <TextBlock Text="WallTray" FontSize="20" FontWeight="SemiBold"/>
+                            <TextBlock Margin="0,4,0,0" Foreground="{DynamicResource MutedTextBrush}"><Run Text="Версия "/><Run Text="{Binding AppVersion,Mode=OneWay}"/></TextBlock>
+                            <TextBlock Margin="0,10,0,0" Text="© 2026 l1ratch. Распространяется под лицензией MIT." Foreground="{DynamicResource MutedTextBrush}" FontSize="12"/>
+                            <Button Margin="0,14,0,0" Content="Репозиторий на GitHub" Style="{StaticResource LinkButton}" Command="{Binding OpenUrlCommand}" CommandParameter="https://github.com/l1ratch/BingWallTray" HorizontalAlignment="Left"/>
+                        </StackPanel></Border>
+                    </StackPanel>
+                    <StackPanel Visibility="{Binding IsPageAboutUpdates,Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="Обновления" Style="{StaticResource PageTitle}"/><TextBlock Text="Проверка новых версий через GitHub Releases или Winget" Style="{StaticResource PageSubtitle}"/>
+                        <Border Style="{StaticResource SettingsCard}"><StackPanel>
+                            <TextBlock Text="{Binding UpdateStatusText}" FontWeight="Medium"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                                <Button Content="Проверить обновления" Style="{StaticResource PrimaryButton}" Command="{Binding CheckUpdatesCommand}" IsEnabled="{Binding IsCheckingUpdate,Converter={StaticResource InverseBoolConverter}}"/>
+                                <Button Content="Открыть релиз" Style="{StaticResource SecondaryButton}" Command="{Binding OpenReleaseUrlCommand}" Margin="8,0,0,0" Visibility="{Binding IsUpdateAvailable,Converter={StaticResource BoolToVisibility}}"/>
+                            </StackPanel>
+                        </StackPanel></Border>
+                        <Border Style="{StaticResource SettingsCard}"><StackPanel>
+                            <TextBlock Text="{Binding WingetStatusText}" FontWeight="Medium"/>
+                            <Button Margin="0,12,0,0" Content="Обновить через Winget" Style="{StaticResource SecondaryButton}" Command="{Binding WingetUpgradeCommand}" IsEnabled="{Binding IsWingetAvailable}" HorizontalAlignment="Left"/>
+                        </StackPanel></Border>
+                    </StackPanel>
+                    <StackPanel Visibility="{Binding IsPageAboutLicenses,Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="Лицензии" Style="{StaticResource PageTitle}"/><TextBlock Text="Условия использования WallTray и сторонних источников данных" Style="{StaticResource PageSubtitle}"/>
+                        <Border Style="{StaticResource SettingsCard}"><StackPanel>
+                            <TextBlock Text="Лицензия WallTray (MIT)" FontWeight="Medium"/>
+                            <TextBlock Margin="0,8,0,0" TextWrapping="Wrap" FontSize="11.5" FontFamily="Consolas" Foreground="{DynamicResource MutedTextBrush}"><Run Text="Copyright (c) 2026 l1ratch"/><LineBreak/><LineBreak/><Run Text="Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the &quot;Software&quot;), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, subject to the following conditions:"/><LineBreak/><LineBreak/><Run Text="The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software."/><LineBreak/><LineBreak/><Run Text="THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED."/></TextBlock>
+                        </StackPanel></Border>
+                        <Border Style="{StaticResource SettingsCard}"><StackPanel>
+                            <TextBlock Text="Платформа" FontWeight="Medium"/>
+                            <TextBlock Margin="0,6,0,0" TextWrapping="Wrap" FontSize="11.5" Foreground="{DynamicResource MutedTextBrush}" Text=".NET 8 и WPF (Microsoft) — MIT License."/>
+                            <Button Margin="0,12,0,0" Content=".NET Runtime (GitHub)" Style="{StaticResource LinkButton}" Command="{Binding OpenUrlCommand}" CommandParameter="https://github.com/dotnet/runtime" HorizontalAlignment="Left"/>
+                        </StackPanel></Border>
+                        <Border Style="{StaticResource SettingsCard}"><StackPanel>
+                            <TextBlock Text="Источники данных" FontWeight="Medium"/>
+                            <TextBlock Margin="0,6,0,0" TextWrapping="Wrap" FontSize="11.5" Foreground="{DynamicResource MutedTextBrush}" Text="WallTray использует публичные API сторонних сервисов для получения изображений обоев. Все права на изображения принадлежат их авторам и правообладателям."/>
+                            <Button Margin="0,12,0,0" Content="Bing Image of the Day (Microsoft)" Style="{StaticResource LinkButton}" Command="{Binding OpenUrlCommand}" CommandParameter="https://www.bing.com" HorizontalAlignment="Left"/>
+                            <Button Margin="0,6,0,0" Content="Wallhaven.cc" Style="{StaticResource LinkButton}" Command="{Binding OpenUrlCommand}" CommandParameter="https://wallhaven.cc" HorizontalAlignment="Left"/>
+                        </StackPanel></Border>
+                    </StackPanel>
+                </StackPanel></ScrollViewer>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>

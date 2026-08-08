@@ -19,7 +19,6 @@ namespace BingWallTray.App.Models
         public bool StartWithWindows { get; set; } = false;
         public bool StartMinimizedToTray { get; set; } = true;
         public bool ShowNotifications { get; set; } = true;
-        public bool EnableExtraSources { get; set; } = false;
         public bool EnableHistoricalArchive { get; set; } = true;
         public bool EnableWallhaven { get; set; } = false;
         public string WallhavenQuery { get; set; } = "nature";

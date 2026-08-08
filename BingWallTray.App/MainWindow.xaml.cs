@@ -1,6 +1,7 @@
 using System;
 using System.Windows;
 using System.Windows.Media;
+using System.Windows.Threading;
 using BingWallTray.App.ViewModels;
 
 namespace BingWallTray.App
@@ -8,10 +9,13 @@ namespace BingWallTray.App
     public partial class MainWindow : Window
     {
         private bool _isForceClose = false;
+        private readonly DispatcherTimer _statusPanelCloseTimer;
 
         public MainWindow()
         {
             InitializeComponent();
+            _statusPanelCloseTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(180) };
+            _statusPanelCloseTimer.Tick += StatusPanelCloseTimer_Tick;
             PositionWindow();
             this.DataContextChanged += MainWindow_DataContextChanged;
         }
@@ -25,6 +29,14 @@ namespace BingWallTray.App
             if (e.NewValue is MainViewModel newVm)
             {
                 newVm.PropertyChanged += Vm_PropertyChanged;
+            }
+        }
+
+        private void OpenSettingsWindow_Click(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is MainViewModel vm)
+            {
+                vm.OpenSettingsWindowCommand.Execute(null);
             }
         }
 
@@ -161,6 +173,44 @@ namespace BingWallTray.App
                 }
             }
             return null;
+        }
+
+        private void StatusBadge_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            _statusPanelCloseTimer.Stop();
+            if (DataContext is MainViewModel vm)
+            {
+                vm.IsStatusPopupOpen = true;
+                _ = vm.UpdateCacheStatsAsync();
+            }
+        }
+
+        private void StatusBadge_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            _statusPanelCloseTimer.Start();
+        }
+
+        private void StatusPopup_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            _statusPanelCloseTimer.Stop();
+            if (DataContext is MainViewModel vm)
+            {
+                vm.IsStatusPopupOpen = true;
+            }
+        }
+
+        private void StatusPopup_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            _statusPanelCloseTimer.Start();
+        }
+
+        private void StatusPanelCloseTimer_Tick(object? sender, EventArgs e)
+        {
+            _statusPanelCloseTimer.Stop();
+            if (DataContext is MainViewModel vm)
+            {
+                vm.IsStatusPopupOpen = false;
+            }
         }
     }
 }

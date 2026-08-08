@@ -9,6 +9,9 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
     <AssemblyName>WallTray</AssemblyName>
+    <Version>2026.8.0</Version>
+    <AssemblyVersion>2026.8.0</AssemblyVersion>
+    <FileVersion>2026.8.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>

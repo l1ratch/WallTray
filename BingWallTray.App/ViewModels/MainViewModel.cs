@@ -23,13 +23,13 @@ namespace BingWallTray.App.ViewModels
         private readonly INotificationService _notificationService;
         private readonly IDownloadService _downloadService;
         private readonly IBingService _bingService;
-        private readonly ISpotlightService _spotlightService;
         private readonly IWallhavenService _wallhavenService;
+        private readonly IWingetService _wingetService;
         private readonly AppState _appState;
 
         private BingImage? _selectedImage;
         private bool _isSelectedImageFavorite;
-        private string _appVersion = "1.0.0";
+        private string _appVersion = "2026.8.0";
         private string _updateStatusText = "Проверить обновления";
         private bool _isCheckingUpdate = false;
         private bool _isUpdateAvailable = false;
@@ -57,6 +57,8 @@ namespace BingWallTray.App.ViewModels
                     OnPropertyChanged(nameof(ShowLogo));
                     OnPropertyChanged(nameof(PageTitle));
                     OnPropertyChanged(nameof(IsGalleryActive));
+                    OnPropertyChanged(nameof(IsBottomNavVisible));
+                    NotifyNavStateChanged();
                 }
             }
         }
@@ -67,10 +69,9 @@ namespace BingWallTray.App.ViewModels
             {
                 return ActivePage switch
                 {
-                    "Settings" => 1,
-                    "About" => 2,
-                    "Favorites" => 3,
-                    "ImageDetails" => 4,
+                    "About" => 1,
+                    "Favorites" => 2,
+                    "ImageDetails" => 3,
                     _ => 0
                 };
             }
@@ -78,10 +79,9 @@ namespace BingWallTray.App.ViewModels
             {
                 ActivePage = value switch
                 {
-                    1 => "Settings",
-                    2 => "About",
-                    3 => "Favorites",
-                    4 => "ImageDetails",
+                    1 => "About",
+                    2 => "Favorites",
+                    3 => "ImageDetails",
                     _ => "Gallery"
                 };
                 OnPropertyChanged();
@@ -89,8 +89,9 @@ namespace BingWallTray.App.ViewModels
         }
 
         public bool IsGalleryActive => ActivePage == "Gallery";
-        public bool ShowBackButton => ActivePage != "Gallery";
-        public bool ShowLogo => ActivePage == "Gallery";
+        public bool ShowBackButton => ActivePage == "ImageDetails";
+        public bool ShowLogo => ActivePage != "ImageDetails";
+        public bool IsBottomNavVisible => ActivePage != "ImageDetails";
 
         public string PageTitle
         {
@@ -98,7 +99,6 @@ namespace BingWallTray.App.ViewModels
             {
                 return ActivePage switch
                 {
-                    "Settings" => "Настройки",
                     "About" => "О программе",
                     "Favorites" => "Избранное",
                     "ImageDetails" => "Детали обоев",
@@ -107,11 +107,12 @@ namespace BingWallTray.App.ViewModels
             }
         }
 
+        public string StatusMessageText => string.IsNullOrWhiteSpace(_appState.StatusMessage) ? "Ожидание" : _appState.StatusMessage;
+
         // --- Коллекции обоев ---
 
         private string _currentSource = "Bing";
         private ObservableCollection<BingImage> _displayedImages = new ObservableCollection<BingImage>();
-        private List<BingImage> _spotlightImages = new List<BingImage>();
         private List<BingImage> _wallhavenImages = new List<BingImage>();
         private List<BingImage> _historicalArchiveImages = new List<BingImage>();
         private int _historicalLoadedCount = 0;
@@ -122,23 +123,75 @@ namespace BingWallTray.App.ViewModels
             get => _currentSource;
             set
             {
-                // ponytail: Spotlight is hidden, fallback to Bing
-                string target = value == "Spotlight" ? "Bing" : value;
-                if (SetProperty(ref _currentSource, target))
+                if (SetProperty(ref _currentSource, value))
                 {
                     OnPropertyChanged(nameof(IsBingSourceActive));
-                    OnPropertyChanged(nameof(IsSpotlightSourceActive));
                     OnPropertyChanged(nameof(IsWallhavenSourceActive));
+                    NotifyNavStateChanged();
                     UpdateDisplayedImages();
                 }
             }
         }
 
         public bool IsBingSourceActive => CurrentSource == "Bing";
-        public bool IsSpotlightSourceActive => CurrentSource == "Spotlight";
         public bool IsWallhavenSourceActive => CurrentSource == "Wallhaven";
-
         public bool ShowSourceSelector => Settings.EnableWallhaven;
+        public bool IsMultipleSourcesEnabled => Settings.EnableWallhaven;
+        public bool IsSingleSourceEnabled => !IsMultipleSourcesEnabled;
+
+        public bool IsNavGalleryActive => ActivePage == "Gallery";
+        public bool IsNavBingActive => ActivePage == "Gallery" && CurrentSource == "Bing";
+        public bool IsNavWallhavenActive => ActivePage == "Gallery" && CurrentSource == "Wallhaven";
+        public bool IsNavFavoritesActive => ActivePage == "Favorites";
+        public bool IsNavMoreActive => ActivePage == "About";
+
+        public string BingNavTabTitle => IsMultipleSourcesEnabled ? "Bing" : "Главная";
+
+        private void NotifyNavStateChanged()
+        {
+            OnPropertyChanged(nameof(IsNavGalleryActive));
+            OnPropertyChanged(nameof(IsNavBingActive));
+            OnPropertyChanged(nameof(IsNavWallhavenActive));
+            OnPropertyChanged(nameof(IsNavFavoritesActive));
+            OnPropertyChanged(nameof(IsNavMoreActive));
+            OnPropertyChanged(nameof(IsMultipleSourcesEnabled));
+            OnPropertyChanged(nameof(IsSingleSourceEnabled));
+            OnPropertyChanged(nameof(BingNavTabTitle));
+            OnPropertyChanged(nameof(StatusBadgeText));
+        }
+
+        private bool _isStatusPopupOpen;
+        public bool IsStatusPopupOpen
+        {
+            get => _isStatusPopupOpen;
+            set => SetProperty(ref _isStatusPopupOpen, value);
+        }
+
+        public string StatusBadgeText
+        {
+            get
+            {
+                if (IsStatusBusy)
+                {
+                    if (StatusMessage.Contains("Установка", StringComparison.OrdinalIgnoreCase) || StatusMessage.Contains("Применение", StringComparison.OrdinalIgnoreCase))
+                        return "Установка...";
+                    if (StatusMessage.Contains("Сохранение", StringComparison.OrdinalIgnoreCase))
+                        return "Сохранение...";
+                    if (StatusMessage.Contains("Загрузка", StringComparison.OrdinalIgnoreCase) || StatusMessage.Contains("скачивание", StringComparison.OrdinalIgnoreCase) || StatusMessage.Contains("Подгрузка", StringComparison.OrdinalIgnoreCase) || StatusMessage.Contains("Запрос", StringComparison.OrdinalIgnoreCase))
+                        return "Скачивание...";
+                    return "Проверка...";
+                }
+                if (IsStatusError) return "Ошибка";
+                return string.IsNullOrEmpty(ShortLastCheckTime) || ShortLastCheckTime == "--:--" ? "Готово" : ShortLastCheckTime;
+            }
+        }
+
+        public bool IsStatusBusy => IsChecking || IsDownloading;
+        public bool IsStatusError => StatusMessage.StartsWith("Ошибка", StringComparison.OrdinalIgnoreCase)
+            || StatusMessage.StartsWith("Не удалось", StringComparison.OrdinalIgnoreCase)
+            || StatusMessage.Contains("недоступна", StringComparison.OrdinalIgnoreCase);
+        public string StatusBadgeIcon => IsStatusBusy ? "↻" : IsStatusError ? "!" : "✓";
+        public string StatusBadgeForeground => IsStatusBusy ? "#4ea5f5" : IsStatusError ? "#f05d5e" : "#54b36b";
 
         public ObservableCollection<BingImage> DisplayedImages
         {
@@ -282,6 +335,22 @@ namespace BingWallTray.App.ViewModels
             }
         }
 
+        public string ShortLastCheckTime
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(Settings.LastCheckUtc))
+                {
+                    return "--:--";
+                }
+                if (DateTime.TryParse(Settings.LastCheckUtc, null, System.Globalization.DateTimeStyles.RoundtripKind, out var dt))
+                {
+                    return dt.ToLocalTime().ToString("HH:mm");
+                }
+                return "--:--";
+            }
+        }
+
         public string AutoChangeSource
         {
             get => Settings.AutoChangeSource;
@@ -385,26 +454,6 @@ namespace BingWallTray.App.ViewModels
             }
         }
 
-        public bool EnableExtraSources
-        {
-            get => Settings.EnableExtraSources;
-            set
-            {
-                if (Settings.EnableExtraSources != value)
-                {
-                    Settings.EnableExtraSources = value;
-                    SaveSettings();
-                    OnPropertyChanged();
-                    OnPropertyChanged(nameof(ShowSourceSelector));
-                    if (!value)
-                    {
-                        CurrentSource = "Bing";
-                    }
-                    _ = LoadImagesAsync(forceReload: true);
-                }
-            }
-        }
-
         public bool EnableHistoricalArchive
         {
             get => Settings.EnableHistoricalArchive;
@@ -434,6 +483,7 @@ namespace BingWallTray.App.ViewModels
                     SaveSettings();
                     OnPropertyChanged();
                     OnPropertyChanged(nameof(ShowSourceSelector));
+                    NotifyNavStateChanged();
                     if (!value && CurrentSource == "Wallhaven")
                     {
                         CurrentSource = "Bing";
@@ -722,6 +772,11 @@ namespace BingWallTray.App.ViewModels
         public ICommand AddKeywordTagCommand { get; }
         public ICommand ClearKeywordQueryCommand { get; }
 
+        public ICommand OpenPageCommand { get; }
+        public ICommand SelectSourceAndGalleryCommand { get; }
+        public ICommand ToggleStatusPopupCommand { get; }
+        public ICommand OpenSettingsWindowCommand { get; }
+
         public MainViewModel(
             ISettingsService settingsService,
             IHistoryService historyService,
@@ -734,8 +789,8 @@ namespace BingWallTray.App.ViewModels
             INotificationService notificationService,
             AppState appState,
             IBingService bingService,
-            ISpotlightService spotlightService,
-            IWallhavenService wallhavenService)
+            IWallhavenService wallhavenService,
+            IWingetService wingetService)
         {
             _settingsService = settingsService;
             _historyService = historyService;
@@ -747,12 +802,35 @@ namespace BingWallTray.App.ViewModels
             _logger = logger;
             _notificationService = notificationService;
             _appState = appState;
+            _appState.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(AppState.StatusMessage) || e.PropertyName == nameof(AppState.IsDownloading) || e.PropertyName == nameof(AppState.IsChecking))
+                {
+                    OnPropertyChanged(nameof(StatusMessage));
+                    OnPropertyChanged(nameof(StatusMessageText));
+                    OnPropertyChanged(nameof(IsDownloading));
+                    OnPropertyChanged(nameof(IsChecking));
+                    OnPropertyChanged(nameof(StatusBadgeText));
+                    OnPropertyChanged(nameof(IsStatusBusy));
+                    OnPropertyChanged(nameof(IsStatusError));
+                    OnPropertyChanged(nameof(StatusBadgeIcon));
+                    OnPropertyChanged(nameof(StatusBadgeForeground));
+                }
+            };
             _bingService = bingService;
-            _spotlightService = spotlightService;
             _wallhavenService = wallhavenService;
+            _wingetService = wingetService;
 
-            var version = Assembly.GetExecutingAssembly().GetName().Version;
-            AppVersion = version?.ToString(3) ?? "1.0.0";
+            var informationalVersion = Assembly.GetExecutingAssembly()
+                .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
+                .InformationalVersion;
+
+            if (informationalVersion != null && informationalVersion.Contains("+"))
+            {
+                informationalVersion = informationalVersion.Split('+')[0];
+            }
+
+            AppVersion = informationalVersion ?? "2026.8.0";
 
             SetWallpaperCommand = new RelayCommand(async () => await OnSetWallpaperAsync(), () => IsImageSelected);
             ToggleFavoriteCommand = new RelayCommand(async () => await OnToggleFavoriteAsync(), () => IsImageSelected);
@@ -774,9 +852,14 @@ namespace BingWallTray.App.ViewModels
             ClearKeywordQueryCommand = new RelayCommand(OnClearKeywordQuery);
 
             GoToGalleryCommand = new RelayCommand(() => ActivePage = "Gallery");
-            GoToSettingsCommand = new RelayCommand(() => ActivePage = "Settings");
+            GoToSettingsCommand = new RelayCommand(OnOpenSettingsWindow);
             GoToAboutCommand = new RelayCommand(() => ActivePage = "About");
             ChooseFolderCommand = new RelayCommand(OnChooseFolder);
+
+            OpenPageCommand = new RelayCommand<string>(OnOpenPage);
+            SelectSourceAndGalleryCommand = new RelayCommand<string>(OnSelectSourceAndGallery);
+            ToggleStatusPopupCommand = new RelayCommand(OnToggleStatusPopup);
+            OpenSettingsWindowCommand = new RelayCommand(OnOpenSettingsWindow);
 
             GoToFavoritesCommand = new RelayCommand(async () =>
             {
@@ -842,29 +925,12 @@ namespace BingWallTray.App.ViewModels
                 string id = GetImageId(img);
                 img.IsApplied = (id == activeId);
                 img.IsFavorite = _favoriteIds.Contains(id);
+                img.Source = "Bing";
             }
 
             TodayImages = new ObservableCollection<BingImage>(list);
 
-            // ponytail: Spotlight is temporarily disabled/hidden, skip fetching
-            if (false)
-            {
-                try
-                {
-                    var spotlight = await _spotlightService.GetSpotlightImagesAsync();
-                    foreach (var img in spotlight)
-                    {
-                        string id = GetImageId(img);
-                        img.IsApplied = (id == activeId);
-                        img.IsFavorite = _favoriteIds.Contains(id);
-                    }
-                    _spotlightImages = spotlight;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError("Ошибка при получении обоев Spotlight во VM", ex);
-                }
-            }
+
 
             if (Settings.EnableWallhaven)
             {
@@ -876,6 +942,7 @@ namespace BingWallTray.App.ViewModels
                         string id = GetImageId(img);
                         img.IsApplied = (id == activeId);
                         img.IsFavorite = _favoriteIds.Contains(id);
+                        img.Source = "Wallhaven";
                     }
 
                     // Закрепляем установленные обои Wallhaven первыми в списке, если их там еще нет
@@ -898,7 +965,8 @@ namespace BingWallTray.App.ViewModels
                                     ThumbnailUrl = localPath,
                                     PreviewUrl = localPath,
                                     IsApplied = true,
-                                    IsFavorite = _favoriteIds.Contains(appliedId)
+                                    IsFavorite = _favoriteIds.Contains(appliedId),
+                                    Source = "Wallhaven"
                                 };
                                 wallhaven.Insert(0, appliedImg);
                             }
@@ -954,6 +1022,7 @@ namespace BingWallTray.App.ViewModels
                         string id = GetImageId(img);
                         img.IsApplied = (id == activeId);
                         img.IsFavorite = _favoriteIds.Contains(id);
+                        img.Source = "Bing";
                     }
 
                     _historicalArchiveImages = archive;
@@ -1051,11 +1120,7 @@ namespace BingWallTray.App.ViewModels
 
         private void UpdateDisplayedImages()
         {
-            if (CurrentSource == "Spotlight")
-            {
-                DisplayedImages = new ObservableCollection<BingImage>(_spotlightImages);
-            }
-            else if (CurrentSource == "Wallhaven")
+            if (CurrentSource == "Wallhaven")
             {
                 DisplayedImages = new ObservableCollection<BingImage>(_wallhavenImages);
             }
@@ -1115,6 +1180,9 @@ namespace BingWallTray.App.ViewModels
                     Settings.LastAppliedImageId = id;
                     Settings.LastAutoAppliedDate = TodayImages.FirstOrDefault()?.StartDate ?? string.Empty;
                     SaveSettings();
+
+                    // Сохраняем информацию о применении обоев в базу кэша
+                    await _historyService.AddToCacheAsync(SelectedImage, SelectedImage.Source ?? "Bing", isApplied: true);
 
                     // Обновляем статус IsApplied для всех картинок подборки в памяти
                     UpdateAppliedStatus(id);
@@ -1242,6 +1310,13 @@ namespace BingWallTray.App.ViewModels
         public async Task LoadFavoritesPageAsync()
         {
             var favs = await _historyService.GetFavoritesAsync();
+
+            // ponytail: skip rebuilding the collection (and re-decoding every thumbnail) when
+            // the favorites list hasn't actually changed since the last time the tab was opened.
+            bool unchanged = FavoritesCollection.Count == favs.Count
+                && FavoritesCollection.Select(f => f.Id).SequenceEqual(favs.Select(f => f.Id));
+            if (unchanged) return;
+
             FavoritesCollection = new ObservableCollection<WallpaperHistoryItem>(favs);
         }
 
@@ -1288,6 +1363,18 @@ namespace BingWallTray.App.ViewModels
                     Settings.LastAppliedImageId = item.Id;
                     Settings.LastAutoAppliedDate = TodayImages.FirstOrDefault()?.StartDate ?? string.Empty;
                     SaveSettings();
+
+                    // Сохраняем информацию о применении обоев в базу кэша
+                    var bingImg = new BingImage
+                    {
+                        StartDate = item.Date,
+                        Url = item.RemoteUrl ?? string.Empty,
+                        Title = item.Title,
+                        Copyright = item.Copyright,
+                        CopyrightLink = item.CopyrightLink,
+                        Market = item.Market
+                    };
+                    await _historyService.AddToCacheAsync(bingImg, "Favorites", isApplied: true);
 
                     UpdateAppliedStatus(item.Id);
                     OnPropertyChanged(nameof(IsSelectedImageApplied));
@@ -1371,9 +1458,12 @@ namespace BingWallTray.App.ViewModels
 
         private async Task OnForceCheckBingAsync()
         {
-            await _schedulerService.StartAutoCheckAsync(isManual: false, forceReload: true);
+            _appState.StatusMessage = "Выполняется проверка и обновление обоев...";
+            await _schedulerService.StartAutoCheckAsync(isManual: true, forceReload: true);
             await LoadImagesAsync();
             OnPropertyChanged(nameof(LastCheckStatusText));
+            OnPropertyChanged(nameof(ShortLastCheckTime));
+            _notificationService.ShowInfo("Обновление обоев", "Проверка завершена. Обои успешно обновлены.");
         }
 
         private async Task OnForceReloadArchiveAsync()
@@ -1382,6 +1472,7 @@ namespace BingWallTray.App.ViewModels
             _historicalArchiveImages.Clear();
             await LoadHistoricalArchiveAsync();
             await LoadImagesAsync();
+            _notificationService.ShowInfo("Архив GitHub", $"Список обоев успешно обновлен. Доступно {_historicalArchiveImages.Count} изображений из архива.");
         }
 
         private async Task OnClearCacheAsync()
@@ -1572,12 +1663,6 @@ namespace BingWallTray.App.ViewModels
             {
                 return "Wallhaven_" + Path.GetFileNameWithoutExtension(img.Url);
             }
-            if (img.Url.Contains("spotlight", StringComparison.OrdinalIgnoreCase) || 
-                img.Url.Contains("Windows\\Web\\Wallpaper", StringComparison.OrdinalIgnoreCase) ||
-                img.Url.Contains("Windows/Web/Wallpaper", StringComparison.OrdinalIgnoreCase))
-            {
-                return "Spotlight_" + Path.GetFileNameWithoutExtension(img.Url);
-            }
             return $"{img.StartDate}_{Settings.Market}";
         }
 
@@ -1586,10 +1671,6 @@ namespace BingWallTray.App.ViewModels
             if (TodayImages != null)
             {
                 foreach (var img in TodayImages) img.IsApplied = (GetImageId(img) == appliedId);
-            }
-            if (_spotlightImages != null)
-            {
-                foreach (var img in _spotlightImages) img.IsApplied = (GetImageId(img) == appliedId);
             }
             if (_wallhavenImages != null)
             {
@@ -1602,6 +1683,117 @@ namespace BingWallTray.App.ViewModels
             if (DisplayedImages != null)
             {
                 foreach (var img in DisplayedImages) img.IsApplied = (GetImageId(img) == appliedId);
+            }
+        }
+
+        // --- Кэш ---
+        private string _cacheCountString = "Загрузка...";
+        public string CacheCountString
+        {
+            get => _cacheCountString;
+            set => SetProperty(ref _cacheCountString, value);
+        }
+
+        private string _cacheSizeString = "Загрузка...";
+        public string CacheSizeString
+        {
+            get => _cacheSizeString;
+            set => SetProperty(ref _cacheSizeString, value);
+        }
+
+        public async Task UpdateCacheStatsAsync()
+        {
+            try
+            {
+                int totalCount = await _historyService.GetTotalCacheCountAsync();
+                int downloadedCount = await _historyService.GetDownloadedCacheCountAsync();
+                long totalSize = await _historyService.GetDownloadedCacheSizeAsync();
+
+                double sizeMb = (double)totalSize / (1024 * 1024);
+
+                CacheCountString = $"{totalCount} элементов ({downloadedCount} сохранено на диск)";
+                CacheSizeString = $"{sizeMb:F2} МБ";
+            }
+            catch (Exception ex)
+            {
+                CacheCountString = "Ошибка";
+                CacheSizeString = $"Ошибка ({ex.Message})";
+            }
+        }
+
+        private void OnOpenPage(string? page)
+        {
+            if (string.IsNullOrEmpty(page)) return;
+            ActivePage = page;
+        }
+
+        private void OnSelectSourceAndGallery(string? source)
+        {
+            if (!string.IsNullOrEmpty(source))
+            {
+                CurrentSource = source;
+            }
+            ActivePage = "Gallery";
+        }
+
+        private void OnToggleStatusPopup()
+        {
+            IsStatusPopupOpen = !IsStatusPopupOpen;
+        }
+
+        public void RefreshWallhavenSource(bool enabled)
+        {
+            if (!enabled && CurrentSource == "Wallhaven")
+            {
+                CurrentSource = "Bing";
+            }
+            NotifyNavStateChanged();
+            _ = LoadImagesAsync(forceReload: true);
+        }
+
+        private void OnOpenSettingsWindow()
+        {
+            try
+            {
+                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                {
+                    var existing = System.Windows.Application.Current.Windows.OfType<BingWallTray.App.Views.SettingsWindow>().FirstOrDefault();
+                    if (existing != null)
+                    {
+                        if (existing.WindowState == System.Windows.WindowState.Minimized)
+                        {
+                            existing.WindowState = System.Windows.WindowState.Normal;
+                        }
+                        existing.Topmost = true;
+                        existing.Activate();
+                        existing.Focus();
+                        existing.Topmost = false;
+                        return;
+                    }
+
+                    BingWallTray.App.Views.SettingsWindow win = null!;
+                    var vm = new SettingsViewModel(
+                        _settingsService,
+                        _historyService,
+                        _startupService,
+                        _logger,
+                        _wingetService,
+                        _updateService,
+                        _notificationService,
+                        () => win?.Close(),
+                        RefreshWallhavenSource
+                    );
+
+                    win = new BingWallTray.App.Views.SettingsWindow(vm);
+                    win.ShowInTaskbar = true;
+                    win.Show();
+                    win.Activate();
+                    win.Focus();
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Ошибка при открытии окна параметров во VM", ex);
             }
         }
     }

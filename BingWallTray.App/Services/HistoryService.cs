@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using BingWallTray.App.Models;
-using BingWallTray.App.Utils;
 
 namespace BingWallTray.App.Services
 {
@@ -16,310 +15,198 @@ namespace BingWallTray.App.Services
         Task<IReadOnlyList<WallpaperHistoryItem>> GetFavoritesAsync();
         Task CleanOldNonFavoriteImagesAsync(string downloadFolder, string currentAppliedPath);
         Task ClearCacheAsync();
+        Task<int> GetTotalCacheCountAsync();
+        Task<int> GetDownloadedCacheCountAsync();
+        Task<long> GetDownloadedCacheSizeAsync();
+        Task AddToCacheAsync(BingImage image, string source, bool isApplied = false);
     }
 
     public class HistoryService : IHistoryService
     {
         private readonly ILoggingService _logger;
-        private readonly IDateTimeProvider _dateTimeProvider;
+        private readonly ISettingsService _settingsService;
+        private readonly IWallpaperCacheService _cacheService;
         private readonly string _favoritesFilePath;
-        private readonly string _appDataFolder;
-        private readonly object _lock = new object();
-        private List<WallpaperHistoryItem> _favorites = new List<WallpaperHistoryItem>();
 
-        public HistoryService(ILoggingService logger, IDateTimeProvider dateTimeProvider)
+        public HistoryService(ILoggingService logger, ISettingsService settingsService, IWallpaperCacheService cacheService)
         {
             _logger = logger;
-            _dateTimeProvider = dateTimeProvider;
+            _settingsService = settingsService;
+            _cacheService = cacheService;
 
             string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            _appDataFolder = Path.Combine(appData, "WallTray");
-            _favoritesFilePath = Path.Combine(_appDataFolder, "favorites.json");
+            _favoritesFilePath = Path.Combine(appData, "WallTray", "favorites.json");
         }
 
-        private async Task LoadFavoritesAsync()
+        private async Task EnsureMigratedAsync()
         {
-            if (!Directory.Exists(_appDataFolder))
+            if (File.Exists(_favoritesFilePath))
             {
-                try
-                {
-                    Directory.CreateDirectory(_appDataFolder);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError("Не удалось создать папку настроек/избранного", ex);
-                    return;
-                }
-            }
-
-            string backupPath = _favoritesFilePath + ".bak";
-            string filePathToLoad = _favoritesFilePath;
-
-            // Если основной файл отсутствует, но есть бэкап, пробуем бэкап
-            if (!File.Exists(_favoritesFilePath) && File.Exists(backupPath))
-            {
-                filePathToLoad = backupPath;
-                _logger.LogWarning("Основной файл избранного отсутствует, используется резервная копия.");
-            }
-            else if (!File.Exists(_favoritesFilePath))
-            {
-                lock (_lock)
-                {
-                    _favorites = new List<WallpaperHistoryItem>();
-                }
-                return;
-            }
-
-            int retryCount = 0;
-            while (retryCount < 5)
-            {
+                _logger.LogInfo("Обнаружен старый файл favorites.json. Запущена миграция в новую базу кэша...");
                 try
                 {
                     string json;
-                    using (var reader = new StreamReader(filePathToLoad))
+                    using (var reader = new StreamReader(_favoritesFilePath))
                     {
                         json = await reader.ReadToEndAsync();
                     }
 
                     var items = JsonSerializer.Deserialize<List<WallpaperHistoryItem>>(json);
-                    lock (_lock)
+                    if (items != null)
                     {
-                        _favorites = items ?? new List<WallpaperHistoryItem>();
-                    }
-                    return; // Успешно прочитано!
-                }
-                catch (JsonException jsonEx)
-                {
-                    _logger.LogError($"Файл избранного {filePathToLoad} поврежден (JSON).", jsonEx);
-
-                    // Если основной файл поврежден, пробуем бэкап
-                    if (filePathToLoad == _favoritesFilePath && File.Exists(backupPath))
-                    {
-                        _logger.LogWarning("Попытка загрузки резервной копии избранного...");
-                        filePathToLoad = backupPath;
-                        retryCount = 0; // Сбрасываем попытки для бэкапа
-                        continue;
+                        foreach (var item in items)
+                        {
+                            var cacheItem = MapToCacheItem(item);
+                            cacheItem.IsFavorite = true;
+                            await _cacheService.AddOrUpdateAsync(cacheItem);
+                        }
                     }
 
-                    // Если бэкап тоже поврежден или отсутствует
-                    HandleCorruptedFavorites();
-                    break;
-                }
-                catch (IOException ioEx)
-                {
-                    retryCount++;
-                    if (retryCount >= 5)
-                    {
-                        _logger.LogError($"Не удалось получить доступ к файлу избранного {filePathToLoad} после {retryCount} попыток.", ioEx);
-                        throw; // Пробрасываем ошибку дальше, не сбрасывая список на пустой!
-                    }
-                    await Task.Delay(100);
+                    string migratedPath = _favoritesFilePath + ".migrated";
+                    if (File.Exists(migratedPath)) File.Delete(migratedPath);
+                    File.Move(_favoritesFilePath, migratedPath);
+
+                    string backupPath = _favoritesFilePath + ".bak";
+                    if (File.Exists(backupPath)) File.Delete(backupPath);
+
+                    _logger.LogInfo("Миграция избранного успешно завершена!");
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError($"Критическая ошибка чтения файла избранного {filePathToLoad}", ex);
-                    throw;
+                    _logger.LogError("Ошибка при миграции старого списка избранного", ex);
                 }
             }
         }
 
-        private void HandleCorruptedFavorites()
+        private WallpaperHistoryItem MapToHistoryItem(WallpaperCacheItem cacheItem)
         {
-            try
+            return new WallpaperHistoryItem
             {
-                string dateStr = _dateTimeProvider.Today.ToString("yyyyMMdd_HHmmss");
-                string brokenFileName = $"favorites.broken.{dateStr}.json";
-                string brokenFilePath = Path.Combine(_appDataFolder, brokenFileName);
-
-                if (File.Exists(_favoritesFilePath))
-                {
-                    if (File.Exists(brokenFilePath)) File.Delete(brokenFilePath);
-                    File.Move(_favoritesFilePath, brokenFilePath);
-                    _logger.LogInfo($"Резервная копия поврежденного файла избранного сохранена как {brokenFileName}");
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("Не удалось обработать поврежденный файл избранного", ex);
-            }
-
-            lock (_lock)
-            {
-                _favorites = new List<WallpaperHistoryItem>();
-            }
+                Id = cacheItem.Id,
+                Title = cacheItem.Title,
+                Copyright = cacheItem.Copyright,
+                CopyrightLink = cacheItem.CopyrightLink,
+                RemoteUrl = cacheItem.Url,
+                LocalPath = cacheItem.LocalPath,
+                Date = cacheItem.StartDate,
+                IsFavorite = cacheItem.IsFavorite,
+                DisplayPath = File.Exists(cacheItem.LocalPath) ? cacheItem.LocalPath : cacheItem.Url
+            };
         }
 
-        private async Task SaveFavoritesAsync()
+        private WallpaperCacheItem MapToCacheItem(WallpaperHistoryItem item)
         {
-            string tempPath = _favoritesFilePath + ".tmp";
-            string backupPath = _favoritesFilePath + ".bak";
-
-            try
+            return new WallpaperCacheItem
             {
-                if (!Directory.Exists(_appDataFolder))
-                {
-                    Directory.CreateDirectory(_appDataFolder);
-                }
-
-                string json;
-                lock (_lock)
-                {
-                    _favorites = _favorites.OrderByDescending(f => f.Date).ToList();
-                    json = JsonSerializer.Serialize(_favorites, new JsonSerializerOptions { WriteIndented = true });
-                }
-
-                // Пишем во временный файл
-                using (var writer = new StreamWriter(tempPath, false))
-                {
-                    await writer.WriteAsync(json);
-                }
-
-                // Создаем бэкап перед заменой (если старый файл существует)
-                if (File.Exists(_favoritesFilePath))
-                {
-                    try
-                    {
-                        File.Copy(_favoritesFilePath, backupPath, true);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning($"Не удалось создать резервную копию перед записью: {ex.Message}");
-                    }
-                }
-
-                // Атомарно перемещаем временный файл на место основного
-                if (File.Exists(_favoritesFilePath))
-                {
-                    File.Delete(_favoritesFilePath);
-                }
-                File.Move(tempPath, _favoritesFilePath);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("Ошибка при сохранении списка избранного", ex);
-
-                // Пытаемся прибраться
-                if (File.Exists(tempPath))
-                {
-                    try { File.Delete(tempPath); } catch { }
-                }
-            }
+                Id = item.Id,
+                Title = item.Title,
+                Copyright = item.Copyright,
+                CopyrightLink = item.CopyrightLink,
+                Url = item.RemoteUrl,
+                LocalPath = item.LocalPath,
+                StartDate = item.Date,
+                IsFavorite = item.IsFavorite,
+                Source = "Favorites"
+            };
         }
 
         public async Task AddOrUpdateFavoriteAsync(WallpaperHistoryItem item)
         {
-            await LoadFavoritesAsync();
-
-            lock (_lock)
-            {
-                var existing = _favorites.FirstOrDefault(f => f.Id == item.Id);
-                if (existing != null)
-                {
-                    existing.Title = item.Title;
-                    existing.Copyright = item.Copyright;
-                    existing.CopyrightLink = item.CopyrightLink;
-                    existing.RemoteUrl = item.RemoteUrl;
-                    existing.LocalPath = item.LocalPath;
-                    existing.IsFavorite = true;
-                }
-                else
-                {
-                    item.IsFavorite = true;
-                    _favorites.Add(item);
-                }
-            }
-
-            await SaveFavoritesAsync();
-            _logger.LogInfo($"Обои добавлены в избранное: {item.Id}");
+            await EnsureMigratedAsync();
+            var cacheItem = MapToCacheItem(item);
+            cacheItem.IsFavorite = true;
+            await _cacheService.AddOrUpdateAsync(cacheItem);
+            _logger.LogInfo($"Обои добавлены в избранное через кэш-сервис: {item.Id}");
         }
 
         public async Task RemoveFavoriteAsync(string id)
         {
-            await LoadFavoritesAsync();
-
-            string? fileToDelete = null;
-            lock (_lock)
+            await EnsureMigratedAsync();
+            var existing = await _cacheService.GetByIdAsync(id);
+            if (existing != null)
             {
-                var existing = _favorites.FirstOrDefault(f => f.Id == id);
-                if (existing != null)
-                {
-                    fileToDelete = existing.LocalPath;
-                    _favorites.Remove(existing);
-                }
-            }
+                existing.IsFavorite = false;
+                await _cacheService.AddOrUpdateAsync(existing);
+                _logger.LogInfo($"Обои удалены из избранного в кэш-сервисе: {id}");
 
-            await SaveFavoritesAsync();
-            _logger.LogInfo($"Обои удалены из избранного: {id}");
-
-            if (!string.IsNullOrEmpty(fileToDelete))
-            {
-                try
+                // Удаляем локальный файл, если он не нужен для других целей
+                if (!string.IsNullOrEmpty(existing.LocalPath) && File.Exists(existing.LocalPath))
                 {
-                    if (File.Exists(fileToDelete))
+                    try
                     {
-                        File.Delete(fileToDelete);
-                        _logger.LogInfo($"Файл избранного удален с диска: {fileToDelete}");
+                        File.Delete(existing.LocalPath);
+                        _logger.LogInfo($"Файл обоев удален с диска: {existing.LocalPath}");
+                        existing.LocalPath = string.Empty;
+                        await _cacheService.AddOrUpdateAsync(existing);
                     }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning($"Не удалось удалить файл избранного {fileToDelete}: {ex.Message}");
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning($"Не удалось удалить файл обоев {existing.LocalPath}: {ex.Message}");
+                    }
                 }
             }
         }
 
         public async Task<IReadOnlyList<WallpaperHistoryItem>> GetFavoritesAsync()
         {
-            await LoadFavoritesAsync();
-            lock (_lock)
-            {
-                return _favorites.ToList().AsReadOnly();
-            }
+            await EnsureMigratedAsync();
+            var all = await _cacheService.GetAllAsync();
+            return all.Where(x => x.IsFavorite)
+                      .Select(MapToHistoryItem)
+                      .OrderByDescending(f => f.Date)
+                      .ToList()
+                      .AsReadOnly();
         }
 
         public async Task CleanOldNonFavoriteImagesAsync(string downloadFolder, string currentAppliedPath)
         {
             if (!Directory.Exists(downloadFolder)) return;
 
-            await LoadFavoritesAsync();
+            var settings = _settingsService.CurrentSettings;
+            if (!settings.DeleteOldImages) return;
 
-            HashSet<string> protectedFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            await EnsureMigratedAsync();
+            var all = await _cacheService.GetAllAsync();
 
-            // Защищаем файлы избранного
-            lock (_lock)
-            {
-                foreach (var fav in _favorites)
-                {
-                    if (!string.IsNullOrEmpty(fav.LocalPath))
-                    {
-                        protectedFiles.Add(Path.GetFullPath(fav.LocalPath));
-                    }
-                }
-            }
+            var protectedPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-            // Защищаем текущие установленные обои
+            foreach (var item in all.Where(x => x.IsFavorite && !string.IsNullOrEmpty(x.LocalPath)))
+                protectedPaths.Add(Path.GetFullPath(item.LocalPath));
+
             if (!string.IsNullOrEmpty(currentAppliedPath))
-            {
-                protectedFiles.Add(Path.GetFullPath(currentAppliedPath));
-            }
+                protectedPaths.Add(Path.GetFullPath(currentAppliedPath));
 
             try
             {
-                var files = Directory.GetFiles(downloadFolder, "*.jpg");
-                foreach (var file in files)
+                var files = Directory.GetFiles(downloadFolder, "*.*")
+                    .Where(s => s.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) ||
+                                s.EndsWith(".png", StringComparison.OrdinalIgnoreCase))
+                    .Select(f => new FileInfo(f))
+                    .OrderByDescending(f => f.LastWriteTime)
+                    .ToList();
+
+                // Первые KeepLastImages файлов (не-избранных) оставляем, остальные удаляем
+                int kept = 0;
+                foreach (var fi in files)
                 {
-                    string fullPath = Path.GetFullPath(file);
-                    if (!protectedFiles.Contains(fullPath))
+                    string fullPath = Path.GetFullPath(fi.FullName);
+                    if (protectedPaths.Contains(fullPath))
+                        continue;
+
+                    if (kept < settings.KeepLastImages)
                     {
-                        try
-                        {
-                            File.Delete(file);
-                            _logger.LogInfo($"Автоочистка: удален неизбранный файл обоев: {file}");
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogWarning($"Автоочистка: не удалось удалить файл {file}. Ошибка: {ex.Message}");
-                        }
+                        kept++;
+                        continue;
+                    }
+
+                    try
+                    {
+                        fi.Delete();
+                        _logger.LogInfo($"Автоочистка: удален старый файл обоев: {fi.FullName}");
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning($"Автоочистка: не удалось удалить файл {fi.FullName}. Ошибка: {ex.Message}");
                     }
                 }
             }
@@ -331,35 +218,109 @@ namespace BingWallTray.App.Services
 
         public async Task ClearCacheAsync()
         {
-            await LoadFavoritesAsync();
+            await EnsureMigratedAsync();
+            var all = await _cacheService.GetAllAsync();
 
-            // Копируем список для удаления файлов
-            List<WallpaperHistoryItem> toDelete;
-            lock (_lock)
+            // Удаляем файлы с диска
+            foreach (var item in all)
             {
-                toDelete = _favorites.ToList();
-                _favorites.Clear();
-            }
-
-            await SaveFavoritesAsync();
-
-            // Пытаемся удалить все файлы избранного с диска
-            foreach (var item in toDelete)
-            {
-                try
+                if (!string.IsNullOrEmpty(item.LocalPath) && File.Exists(item.LocalPath))
                 {
-                    if (File.Exists(item.LocalPath))
+                    try
                     {
                         File.Delete(item.LocalPath);
                     }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning($"Ошибка очистки кэша для файла {item.LocalPath}: {ex.Message}");
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning($"Ошибка очистки кэша для файла {item.LocalPath}: {ex.Message}");
+                    }
                 }
             }
 
+            await _cacheService.ClearAllAsync();
             _logger.LogInfo("Все файлы избранного и список очищены.");
+        }
+
+        public async Task<int> GetTotalCacheCountAsync()
+        {
+            var all = await _cacheService.GetAllAsync();
+            return all.Count;
+        }
+
+        public async Task<int> GetDownloadedCacheCountAsync()
+        {
+            var all = await _cacheService.GetAllAsync();
+            return all.Count(x => !string.IsNullOrEmpty(x.LocalPath) && File.Exists(x.LocalPath));
+        }
+
+        public async Task<long> GetDownloadedCacheSizeAsync()
+        {
+            var all = await _cacheService.GetAllAsync();
+            long total = 0;
+            foreach (var x in all)
+            {
+                if (!string.IsNullOrEmpty(x.LocalPath) && File.Exists(x.LocalPath))
+                {
+                    try
+                    {
+                        var fi = new FileInfo(x.LocalPath);
+                        total += fi.Length;
+                    }
+                    catch { }
+                }
+            }
+            return total;
+        }
+
+        public async Task AddToCacheAsync(BingImage image, string source, bool isApplied = false)
+        {
+            await EnsureMigratedAsync();
+            string id = source == "Wallhaven"
+                ? "Wallhaven_" + Path.GetFileNameWithoutExtension(image.Url)
+                : $"{image.StartDate}_{image.Market}";
+            var item = await _cacheService.GetByIdAsync(id);
+
+            if (item == null)
+            {
+                item = new WallpaperCacheItem
+                {
+                    Id = id,
+                    Title = image.Title,
+                    Copyright = image.Copyright,
+                    CopyrightLink = image.CopyrightLink,
+                    Url = image.Url,
+                    UrlBase = image.UrlBase,
+                    StartDate = image.StartDate,
+                    Market = image.Market,
+                    Source = source
+                };
+            }
+
+            if (isApplied)
+            {
+                item.LastAppliedDate = DateTime.Now;
+                item.ApplyCount++;
+            }
+
+            // Проверяем, скачан ли файл локально
+            string targetFolder = _settingsService.CurrentSettings.DownloadFolder;
+            string titleTmp = string.IsNullOrWhiteSpace(image.Title) ? "bing-wallpaper" : image.Title.Trim();
+            string sanitizedTitleTmp = Utils.FileNameSanitizer.Sanitize(titleTmp);
+            string marketTmp = string.IsNullOrWhiteSpace(image.Market) ? "unknown" : image.Market;
+            string expectedPath = Path.Combine(targetFolder, $"{image.StartDate}_{marketTmp}_{sanitizedTitleTmp}.jpg");
+
+            if (File.Exists(expectedPath))
+            {
+                item.LocalPath = expectedPath;
+                try
+                {
+                    var fi = new FileInfo(expectedPath);
+                    item.FileSize = fi.Length;
+                }
+                catch { }
+            }
+
+            await _cacheService.AddOrUpdateAsync(item);
         }
     }
 }

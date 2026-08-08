@@ -72,7 +72,7 @@
                     
                     <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
                         <TextBlock Text="Автосмена обоев" Foreground="#ffffff" FontSize="12" FontWeight="SemiBold"/>
-                        <TextBlock Text="Автоматическая установка свежих картинок из Bing, Spotlight и Wallhaven по таймеру или при включении ПК." Foreground="#aaaaaa" FontSize="10" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                        <TextBlock Text="Автоматическая установка свежих картинок из Bing и Wallhaven по таймеру или при включении ПК." Foreground="#aaaaaa" FontSize="10" TextWrapping="Wrap" Margin="0,2,0,0"/>
                     </StackPanel>
                 </Grid>
 

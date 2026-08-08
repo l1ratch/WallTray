@@ -3,6 +3,8 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Media;
+using Microsoft.Win32;
 using BingWallTray.App.Models;
 using BingWallTray.App.Services;
 using BingWallTray.App.Utils;
@@ -20,6 +22,7 @@ namespace BingWallTray.App
         private IDateTimeProvider? _dateTimeProvider;
         private ISettingsService? _settingsService;
         private IHistoryService? _historyService;
+        private IWallpaperCacheService? _wallpaperCacheService;
         private IBingService? _bingService;
         private IDownloadService? _downloadService;
         private IWallpaperService? _wallpaperService;
@@ -28,11 +31,31 @@ namespace BingWallTray.App
         private INotificationService? _notificationService;
         private ITrayService? _trayService;
         private ISchedulerService? _schedulerService;
-        private ISpotlightService? _spotlightService;
         private IWallhavenService? _wallhavenService;
+        private IWingetService? _wingetService;
 
         private MainViewModel? _mainViewModel;
         private MainWindow? _mainWindow;
+
+        private void ApplySystemTheme()
+        {
+            bool isDark = false;
+            try
+            {
+                using var key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize");
+                isDark = Convert.ToInt32(key?.GetValue("AppsUseLightTheme", 1)) == 0;
+            }
+            catch { }
+
+            var resources = Current.Resources;
+            resources["AppBackgroundBrush"] = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(isDark ? "#151619" : "#F7F7F8"));
+            resources["SurfaceBrush"] = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(isDark ? "#202125" : "#FFFFFF"));
+            resources["SurfaceAltBrush"] = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(isDark ? "#292A2F" : "#F0F0F2"));
+            resources["BorderBrush"] = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(isDark ? "#3A3B41" : "#D8D8DC"));
+            resources["TextBrush"] = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(isDark ? "#F5F5F7" : "#1D1D20"));
+            resources["MutedTextBrush"] = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(isDark ? "#A5A6AD" : "#68686F"));
+            resources["AccentSoftBrush"] = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(isDark ? "#263C68" : "#DCE9FF"));
+        }
 
         protected override async void OnStartup(StartupEventArgs e)
         {
@@ -47,6 +70,8 @@ namespace BingWallTray.App
             }
 
             base.OnStartup(e);
+            ApplySystemTheme();
+            SystemEvents.UserPreferenceChanged += SystemEvents_UserPreferenceChanged;
 
             // 1. Инициализация логирования и базовых утилит
             _logger = new LoggingService();
@@ -94,15 +119,16 @@ namespace BingWallTray.App
 
             // 2. Инициализация сервисов
             _settingsService = new SettingsService(_logger, _dateTimeProvider);
-            _historyService = new HistoryService(_logger, _dateTimeProvider);
+            _wallpaperCacheService = new WallpaperCacheService(_logger, _dateTimeProvider);
+            _historyService = new HistoryService(_logger, _settingsService, _wallpaperCacheService);
             _bingService = new BingService(_logger);
             _downloadService = new DownloadService(_logger);
             _wallpaperService = new WallpaperService(_logger);
             _startupService = new StartupService(_logger);
             _gitHubUpdateService = new GitHubUpdateService(_logger);
             _notificationService = new NotificationService(_settingsService, _logger);
-            _spotlightService = new SpotlightService(_logger);
             _wallhavenService = new WallhavenService(_logger);
+            _wingetService = new WingetService(_logger);
 
             // Перехват уведомления о поврежденном JSON
             string? brokenSettingsFile = null;
@@ -153,8 +179,8 @@ namespace BingWallTray.App
                 _notificationService,
                 _appState,
                 _bingService,
-                _spotlightService,
-                _wallhavenService
+                _wallhavenService,
+                _wingetService
             );
 
             // ponytail: CLI mode to set wallpaper and exit immediately
@@ -233,6 +259,14 @@ namespace BingWallTray.App
             {
                 _logger.LogInfo("Приложение запущено с открытием окна.");
                 ShowMainWindow();
+            }
+        }
+
+        private void SystemEvents_UserPreferenceChanged(object? sender, UserPreferenceChangedEventArgs e)
+        {
+            if (e.Category == UserPreferenceCategory.General)
+            {
+                Dispatcher.BeginInvoke(new Action(ApplySystemTheme));
             }
         }
 
@@ -331,6 +365,7 @@ namespace BingWallTray.App
 
         protected override void OnExit(ExitEventArgs e)
         {
+            SystemEvents.UserPreferenceChanged -= SystemEvents_UserPreferenceChanged;
             _schedulerService?.Stop();
             _trayService?.Cleanup();
 
