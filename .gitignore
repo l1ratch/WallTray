@@ -1,23 +1,52 @@
-## Build outputs
-[Db]in/
+## .NET / VS Build Outputs
+[Bb]in/
 [Oo]bj/
 [Pp]ublish/
+[Rr]elease/
+[Dd]ebug/
 
-## IDEs and editors
+## IDE and Editor Files (.vs, .vscode, Rider, etc.)
 .vs/
 .idea/
+.vscode/
 *.user
 *.suo
 *.userosscache
 *.sln.docstates
-.vscode/
+*.sln.DotSettings.user
+*.userprefs
+mono_crash.*
 
-## Operating System files
+## NuGet Packages
+packages/
+*.nuget.props
+*.nuget.targets
+project.lock.json
+project.assets.json
+
+## OS generated files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
 
-## App-specific logs and caches
+## App local runtime caches and configurations
 *.log
 today_cache.json
 favorites.json
 settings.json
+wallpapers.json
+*.json.bak
+
+## Local build artifacts and deployment
+public/
+*.exe
+*.dll
+*.pdb
+*.msi
+
+## Agent coordination files (internal development only)
+.agent/
