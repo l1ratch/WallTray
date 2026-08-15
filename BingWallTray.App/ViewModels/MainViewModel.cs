@@ -99,7 +99,7 @@ namespace BingWallTray.App.ViewModels
             {
                 return ActivePage switch
                 {
-                    "About" => "О программе",
+                    "About" => "Другое",
                     "Favorites" => "Избранное",
                     "ImageDetails" => "Детали обоев",
                     _ => "WallTray"
@@ -943,34 +943,6 @@ namespace BingWallTray.App.ViewModels
                         img.IsApplied = (id == activeId);
                         img.IsFavorite = _favoriteIds.Contains(id);
                         img.Source = "Wallhaven";
-                    }
-
-                    // Закрепляем установленные обои Wallhaven первыми в списке, если их там еще нет
-                    if (Settings.LastAppliedImageId.StartsWith("Wallhaven_", StringComparison.OrdinalIgnoreCase))
-                    {
-                        var appliedId = Settings.LastAppliedImageId;
-                        if (!wallhaven.Any(img => GetImageId(img) == appliedId))
-                        {
-                            var localPath = _appState.LastAppliedPath;
-                            if (System.IO.File.Exists(localPath))
-                            {
-                                var idOnly = appliedId.Substring("Wallhaven_".Length);
-                                var appliedImg = new BingImage
-                                {
-                                    StartDate = DateTime.Today.ToString("yyyyMMdd"),
-                                    Title = $"Wallhaven {idOnly} (Установлено)",
-                                    Copyright = $"Текущие установленные обои",
-                                    CopyrightLink = $"https://wallhaven.cc/w/{idOnly}",
-                                    Url = localPath,
-                                    ThumbnailUrl = localPath,
-                                    PreviewUrl = localPath,
-                                    IsApplied = true,
-                                    IsFavorite = _favoriteIds.Contains(appliedId),
-                                    Source = "Wallhaven"
-                                };
-                                wallhaven.Insert(0, appliedImg);
-                            }
-                        }
                     }
 
                     _wallhavenImages = wallhaven;

@@ -1,6 +1,7 @@
 using System;
 using System.Windows;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Threading;
 using BingWallTray.App.ViewModels;
 
@@ -10,6 +11,7 @@ namespace BingWallTray.App
     {
         private bool _isForceClose = false;
         private readonly DispatcherTimer _statusPanelCloseTimer;
+        private Storyboard? _spinnerStoryboard;
 
         public MainWindow()
         {
@@ -44,7 +46,6 @@ namespace BingWallTray.App
         {
             if (e.PropertyName == "CurrentSource")
             {
-                // Сбрасываем скролл в начало
                 Dispatcher.BeginInvoke(new Action(() =>
                 {
                     if (GalleryListBox != null)
@@ -53,6 +54,37 @@ namespace BingWallTray.App
                         if (scrollViewer != null)
                         {
                             scrollViewer.ScrollToTop();
+                        }
+                    }
+                }));
+            }
+            else if (e.PropertyName == "IsStatusBusy")
+            {
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    if (DataContext is MainViewModel vm)
+                    {
+                        var iconText = FindVisualChildByName<System.Windows.Controls.TextBlock>(StatusBadge, "StatusIconText");
+                        if (iconText != null)
+                        {
+                            var rotateTransform = iconText.RenderTransform as RotateTransform;
+                            if (rotateTransform != null)
+                            {
+                                if (vm.IsStatusBusy)
+                                {
+                                    _spinnerStoryboard = new Storyboard { RepeatBehavior = RepeatBehavior.Forever };
+                                    var spinAnim = new DoubleAnimation(0, 360, TimeSpan.FromSeconds(0.9));
+                                    Storyboard.SetTarget(spinAnim, rotateTransform);
+                                    Storyboard.SetTargetProperty(spinAnim, new PropertyPath(RotateTransform.AngleProperty));
+                                    _spinnerStoryboard.Children.Add(spinAnim);
+                                    _spinnerStoryboard.Begin();
+                                }
+                                else
+                                {
+                                    _spinnerStoryboard?.Stop();
+                                    rotateTransform.Angle = 0;
+                                }
+                            }
                         }
                     }
                 }));
@@ -167,6 +199,25 @@ namespace BingWallTray.App
                 }
 
                 var childOfChild = FindVisualChild<T>(child);
+                if (childOfChild != null)
+                {
+                    return childOfChild;
+                }
+            }
+            return null;
+        }
+
+        private T? FindVisualChildByName<T>(DependencyObject obj, string name) where T : FrameworkElement
+        {
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(obj); i++)
+            {
+                var child = VisualTreeHelper.GetChild(obj, i);
+                if (child is T t && t.Name == name)
+                {
+                    return t;
+                }
+
+                var childOfChild = FindVisualChildByName<T>(child, name);
                 if (childOfChild != null)
                 {
                     return childOfChild;
