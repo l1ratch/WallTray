@@ -174,15 +174,26 @@ namespace BingWallTray.App.ViewModels
                 if (IsStatusBusy)
                 {
                     if (StatusMessage.Contains("Установка", StringComparison.OrdinalIgnoreCase) || StatusMessage.Contains("Применение", StringComparison.OrdinalIgnoreCase))
-                        return "Установка...";
+                        return "Установка";
                     if (StatusMessage.Contains("Сохранение", StringComparison.OrdinalIgnoreCase))
-                        return "Сохранение...";
+                        return "Сохранение";
                     if (StatusMessage.Contains("Загрузка", StringComparison.OrdinalIgnoreCase) || StatusMessage.Contains("скачивание", StringComparison.OrdinalIgnoreCase) || StatusMessage.Contains("Подгрузка", StringComparison.OrdinalIgnoreCase) || StatusMessage.Contains("Запрос", StringComparison.OrdinalIgnoreCase))
-                        return "Скачивание...";
-                    return "Проверка...";
+                        return "Загрузка";
+                    return "Проверка";
                 }
                 if (IsStatusError) return "Ошибка";
-                return string.IsNullOrEmpty(ShortLastCheckTime) || ShortLastCheckTime == "--:--" ? "Готово" : ShortLastCheckTime;
+                return "Готово";
+            }
+        }
+
+        // Крупный заголовок для панели подробностей статуса
+        public string StatusHeadline
+        {
+            get
+            {
+                if (IsStatusBusy) return "В работе";
+                if (IsStatusError) return "Требуется внимание";
+                return "Всё работает";
             }
         }
 
@@ -811,6 +822,7 @@ namespace BingWallTray.App.ViewModels
                     OnPropertyChanged(nameof(IsDownloading));
                     OnPropertyChanged(nameof(IsChecking));
                     OnPropertyChanged(nameof(StatusBadgeText));
+                    OnPropertyChanged(nameof(StatusHeadline));
                     OnPropertyChanged(nameof(IsStatusBusy));
                     OnPropertyChanged(nameof(IsStatusError));
                     OnPropertyChanged(nameof(StatusBadgeIcon));

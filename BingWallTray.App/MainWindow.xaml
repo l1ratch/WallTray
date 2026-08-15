@@ -71,53 +71,43 @@
             </Setter>
         </Style>
 
+        <!-- Кнопка нижнего докера навигации: плоская, без коробок, с активным индикатором -->
         <Style x:Key="DockNavButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="#1f1f1f"/>
-            <Setter Property="Foreground" Value="#a0a0a0"/>
-            <Setter Property="BorderBrush" Value="#383838"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Height" Value="64"/>
-            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#8a8a8a"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Height" Value="52"/>
+            <Setter Property="Padding" Value="4,0"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="dockButton" 
-                                Background="{TemplateBinding Background}" 
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="12">
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="*"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
-                                
-                                <ContentPresenter Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
-                                
-                                <Border x:Name="activeIndicator" Grid.Row="1"
-                                        Background="#5FA3F5" CornerRadius="2" Height="4" Width="36"
-                                        HorizontalAlignment="Center" Margin="0,0,0,6" Opacity="0">
-                                    <Border.Effect>
-                                        <DropShadowEffect Color="#4ea5f5" BlurRadius="6" ShadowDepth="0" Opacity="0.6"/>
-                                    </Border.Effect>
-                                </Border>
-                            </Grid>
-                        </Border>
+                        <Grid Background="Transparent">
+                            <!-- Подсветка при наведении/активности -->
+                            <Border x:Name="hoverPill" Background="Transparent" CornerRadius="10" Margin="4,6"/>
+
+                            <!-- Иконка + подпись -->
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </StackPanel>
+
+                            <!-- Активный индикатор (тонкая линия сверху) -->
+                            <Border x:Name="activeIndicator" VerticalAlignment="Top"
+                                    Background="#4ea5f5" CornerRadius="2" Height="3" Width="28"
+                                    HorizontalAlignment="Center" Margin="0,0,0,0" Opacity="0"/>
+                        </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="dockButton" Property="Background" Value="#2a2a2a"/>
-                                <Setter TargetName="dockButton" Property="BorderBrush" Value="#484848"/>
-                                <Setter Property="Foreground" Value="#ffffff"/>
+                                <Setter TargetName="hoverPill" Property="Background" Value="#242424"/>
+                                <Setter Property="Foreground" Value="#e6e6e6"/>
                             </Trigger>
                             <Trigger Property="Tag" Value="True">
-                                <Setter TargetName="dockButton" Property="Background" Value="#1e4a6e"/>
-                                <Setter TargetName="dockButton" Property="BorderBrush" Value="#2e6a9e"/>
                                 <Setter TargetName="activeIndicator" Property="Opacity" Value="1"/>
-                                <Setter Property="Foreground" Value="#ffffff"/>
+                                <Setter Property="Foreground" Value="#4ea5f5"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="dockButton" Property="Background" Value="#151515"/>
+                                <Setter TargetName="hoverPill" Property="Background" Value="#1a1a1a"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -592,35 +582,43 @@
                 <!-- Бейдж статуса с подробностями по наведению -->
                 <Grid Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right"
                       MouseEnter="StatusBadge_MouseEnter" MouseLeave="StatusBadge_MouseLeave">
-                    <Button x:Name="StatusBadge" Background="#2a2a2a" BorderThickness="0" 
-                            Padding="10,6" Height="32" Width="Auto" Cursor="Hand"
+                    <Button x:Name="StatusBadge" Background="#232323" BorderThickness="0" 
+                            Padding="9,0" Height="30" Width="Auto" Cursor="Hand"
                             Command="{Binding ToggleStatusPopupCommand}">
                         <Button.Template>
                             <ControlTemplate TargetType="Button">
                                 <Border x:Name="badgeBorder" Background="{TemplateBinding Background}" 
-                                        CornerRadius="8" Padding="{TemplateBinding Padding}">
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="{Binding StatusBadgeIcon}" 
-                                                   Foreground="{Binding StatusBadgeForeground}" 
-                                                   FontSize="12" FontWeight="SemiBold" 
-                                                   VerticalAlignment="Center" Margin="0,0,6,0"
-                                                   RenderTransformOrigin="0.5,0.5" x:Name="StatusIconText">
-                                            <TextBlock.RenderTransform>
-                                                <RotateTransform x:Name="StatusIconRotate" Angle="0"/>
-                                            </TextBlock.RenderTransform>
-                                        </TextBlock>
+                                        BorderBrush="#333333" BorderThickness="1"
+                                        CornerRadius="15" Padding="{TemplateBinding Padding}">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <!-- Цветной статус-индикатор (точка) -->
+                                        <Grid Width="16" Height="16" Margin="0,0,7,0" VerticalAlignment="Center">
+                                            <Ellipse Width="8" Height="8" Fill="{Binding StatusBadgeForeground}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                            <!-- Крутящееся кольцо в состоянии занятости -->
+                                            <Ellipse x:Name="BusyRing" Width="15" Height="15" StrokeThickness="1.6" Opacity="0"
+                                                     Stroke="{Binding StatusBadgeForeground}" StrokeDashArray="3 2"
+                                                     RenderTransformOrigin="0.5,0.5">
+                                                <Ellipse.RenderTransform>
+                                                    <RotateTransform x:Name="StatusIconRotate" Angle="0"/>
+                                                </Ellipse.RenderTransform>
+                                            </Ellipse>
+                                        </Grid>
                                         <TextBlock Text="{Binding StatusBadgeText}" 
-                                                   Foreground="#c8c8c8" FontSize="10" FontWeight="Medium" 
+                                                   Foreground="#d8d8d8" FontSize="11" FontWeight="Medium" 
                                                    VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </Border>
                                 <ControlTemplate.Triggers>
                                     <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter TargetName="badgeBorder" Property="Background" Value="#353535"/>
+                                        <Setter TargetName="badgeBorder" Property="Background" Value="#2e2e2e"/>
+                                        <Setter TargetName="badgeBorder" Property="BorderBrush" Value="#444444"/>
                                     </Trigger>
                                     <Trigger Property="IsPressed" Value="True">
-                                        <Setter TargetName="badgeBorder" Property="Background" Value="#202020"/>
+                                        <Setter TargetName="badgeBorder" Property="Background" Value="#1c1c1c"/>
                                     </Trigger>
+                                    <DataTrigger Binding="{Binding IsStatusBusy}" Value="True">
+                                        <Setter TargetName="BusyRing" Property="Opacity" Value="1"/>
+                                    </DataTrigger>
                                 </ControlTemplate.Triggers>
                             </ControlTemplate>
                         </Button.Template>
@@ -629,99 +627,64 @@
             </Grid>
 
             <!-- Встроенная панель статуса: не выходит за границы tray window -->
-            <Border x:Name="StatusPanel" Grid.Row="0" Grid.RowSpan="2" Panel.ZIndex="10" Width="280" HorizontalAlignment="Right" VerticalAlignment="Top"
-                    Margin="0,46,8,0" Background="#1c1c1c" BorderBrush="#333333" BorderThickness="1" CornerRadius="12" Padding="14"
-                    Visibility="Collapsed" Opacity="0" RenderTransformOrigin="0.5,0"
+            <Border x:Name="StatusPanel" Grid.Row="0" Grid.RowSpan="2" Panel.ZIndex="10" Width="286" HorizontalAlignment="Right" VerticalAlignment="Top"
+                    Margin="0,44,0,0" Background="#1e1e1e" BorderBrush="#363636" BorderThickness="1" CornerRadius="14" Padding="16"
+                    Visibility="Collapsed" Opacity="0" RenderTransformOrigin="0.9,0"
                     MouseEnter="StatusPopup_MouseEnter" MouseLeave="StatusPopup_MouseLeave">
                 <Border.Effect>
-                    <DropShadowEffect Color="#000000" Direction="270" ShadowDepth="2" BlurRadius="12" Opacity="0.3"/>
+                    <DropShadowEffect Color="#000000" Direction="270" ShadowDepth="4" BlurRadius="20" Opacity="0.5"/>
                 </Border.Effect>
                 <Border.RenderTransform>
                     <TransformGroup>
-                        <ScaleTransform ScaleX="0.95" ScaleY="0.95"/>
-                        <TranslateTransform Y="-8"/>
+                        <ScaleTransform ScaleX="0.94" ScaleY="0.94"/>
+                        <TranslateTransform Y="-10"/>
                     </TransformGroup>
                 </Border.RenderTransform>
-                <Border.Style>
-                    <Style TargetType="Border">
-                        <Setter Property="Visibility" Value="Collapsed"/>
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding IsStatusPopupOpen}" Value="True">
-                                <Setter Property="Visibility" Value="Visible"/>
-                                <DataTrigger.EnterActions>
-                                    <BeginStoryboard>
-                                        <Storyboard>
-                                            <DoubleAnimation Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.18">
-                                                <DoubleAnimation.EasingFunction>
-                                                    <CubicEase EasingMode="EaseOut"/>
-                                                </DoubleAnimation.EasingFunction>
-                                            </DoubleAnimation>
-                                            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)" 
-                                                             To="1" Duration="0:0:0.18">
-                                                <DoubleAnimation.EasingFunction>
-                                                    <CubicEase EasingMode="EaseOut"/>
-                                                </DoubleAnimation.EasingFunction>
-                                            </DoubleAnimation>
-                                            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)" 
-                                                             To="1" Duration="0:0:0.18">
-                                                <DoubleAnimation.EasingFunction>
-                                                    <CubicEase EasingMode="EaseOut"/>
-                                                </DoubleAnimation.EasingFunction>
-                                            </DoubleAnimation>
-                                            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[1].(TranslateTransform.Y)" 
-                                                             To="0" Duration="0:0:0.18">
-                                                <DoubleAnimation.EasingFunction>
-                                                    <CubicEase EasingMode="EaseOut"/>
-                                                </DoubleAnimation.EasingFunction>
-                                            </DoubleAnimation>
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </DataTrigger.EnterActions>
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </Border.Style>
                 <StackPanel>
-                    <Grid Margin="0,0,0,12">
+                    <!-- Заголовок: крупный статус-заголовок с цветной точкой -->
+                    <Grid Margin="0,0,0,14">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <Border Background="#252525" Width="24" Height="24" CornerRadius="12" Margin="0,0,10,0">
-                            <Path Data="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4M11,17H13V11H11V17M11,9H13V7H11V9Z" 
-                                  Fill="#4ea5f5" Width="14" Height="14" Stretch="Uniform"/>
+                        <Border Width="34" Height="34" CornerRadius="17" Margin="0,0,12,0" Background="#262626">
+                            <Ellipse Width="12" Height="12" Fill="{Binding StatusBadgeForeground}"/>
                         </Border>
-                        <TextBlock Grid.Column="1" Text="Состояние" Foreground="#ffffff" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                    </Grid>
-                    
-                    <Border Background="#252525" CornerRadius="8" Padding="10,8" Margin="0,0,0,10">
-                        <StackPanel>
-                            <Grid Margin="0,0,0,6">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Text="Последняя проверка" Foreground="#888888" FontSize="10"/>
-                                <TextBlock Grid.Column="1" Text="{Binding ShortLastCheckTime}" Foreground="#c8c8c8" FontSize="10" HorizontalAlignment="Right" FontWeight="Medium"/>
-                            </Grid>
-                            <Rectangle Fill="#333333" Height="1" Margin="0,0,0,6"/>
-                            <TextBlock Text="{Binding StatusMessageText}" Foreground="#b8b8b8" FontSize="11" TextWrapping="Wrap"/>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding StatusHeadline}" Foreground="#ffffff" FontSize="14" FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding StatusMessageText}" Foreground="#9a9a9a" FontSize="11" TextWrapping="Wrap" Margin="0,2,0,0"/>
                         </StackPanel>
+                    </Grid>
+
+                    <!-- Строка: последняя проверка -->
+                    <Border Background="#262626" CornerRadius="10" Padding="12,10" Margin="0,0,0,8">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Последняя проверка" Foreground="#8c8c8c" FontSize="11" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="1" Text="{Binding ShortLastCheckTime}" Foreground="#f0f0f0" FontSize="12" HorizontalAlignment="Right" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        </Grid>
                     </Border>
-                    
-                    <Border Background="#252525" CornerRadius="8" Padding="10,8">
+
+                    <!-- Строка: кэш обоев -->
+                    <Border Background="#262626" CornerRadius="10" Padding="12,10">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <StackPanel>
-                                <TextBlock Text="Кэш обоев" Foreground="#888888" FontSize="10" Margin="0,0,0,2"/>
-                                <TextBlock Text="{Binding CacheSizeString}" Foreground="#ffffff" FontSize="12" FontWeight="SemiBold"/>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Кэш обоев" Foreground="#8c8c8c" FontSize="11"/>
+                                <TextBlock Text="{Binding CacheSizeString}" Foreground="#ffffff" FontSize="13" FontWeight="SemiBold" Margin="0,2,0,0"/>
                             </StackPanel>
-                            <Border Grid.Column="1" Background="#1a3a52" CornerRadius="6" Padding="8,4" VerticalAlignment="Center"
+                            <Border Grid.Column="1" Background="#173247" CornerRadius="8" Padding="9,5" VerticalAlignment="Center"
                                     Visibility="{Binding IsDownloading, Converter={StaticResource BoolToVisibility}}">
-                                <TextBlock Text="Загрузка" Foreground="#4ea5f5" FontSize="10" FontWeight="Medium"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <Ellipse Width="6" Height="6" Fill="#4ea5f5" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                    <TextBlock Text="Загрузка" Foreground="#7cc0f7" FontSize="10" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                </StackPanel>
                             </Border>
                         </Grid>
                     </Border>
@@ -1281,70 +1244,77 @@
                 </TabItem>
             </TabControl>
 
-            <!-- 3. НИЖНЯЯ НАВИГАЦИЯ -->
-            <Grid Grid.Row="2" Margin="0,10,0,0" Visibility="{Binding IsBottomNavVisible, Converter={StaticResource BoolToVisibility}}" Opacity="0">
-                <Grid.RenderTransform>
+            <!-- 3. НИЖНЯЯ НАВИГАЦИЯ (единая плоская панель-докер) -->
+            <Border Grid.Row="2" Margin="0,12,0,0" Background="#151515" BorderBrush="#262626" BorderThickness="1" CornerRadius="14"
+                    Visibility="{Binding IsBottomNavVisible, Converter={StaticResource BoolToVisibility}}" Opacity="0">
+                <Border.RenderTransform>
                     <TranslateTransform Y="10"/>
-                </Grid.RenderTransform>
-                <Grid.Triggers>
+                </Border.RenderTransform>
+                <Border.Triggers>
                     <EventTrigger RoutedEvent="FrameworkElement.Loaded">
                         <BeginStoryboard>
                             <Storyboard>
-                                <DoubleAnimation Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2"/>
-                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)" To="0" Duration="0:0:0.2"/>
+                                <DoubleAnimation Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.22"/>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)" To="0" Duration="0:0:0.22">
+                                    <DoubleAnimation.EasingFunction>
+                                        <CubicEase EasingMode="EaseOut"/>
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
                             </Storyboard>
                         </BeginStoryboard>
                     </EventTrigger>
-                </Grid.Triggers>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition x:Name="WallhavenNavColumn" Width="*">
-                        <ColumnDefinition.Style>
-                            <Style TargetType="ColumnDefinition">
-                                <Setter Property="Width" Value="0"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsMultipleSourcesEnabled}" Value="True">
-                                        <Setter Property="Width" Value="*"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </ColumnDefinition.Style>
-                    </ColumnDefinition>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
+                </Border.Triggers>
+                <Grid Margin="4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition x:Name="WallhavenNavColumn" Width="*">
+                            <ColumnDefinition.Style>
+                                <Style TargetType="ColumnDefinition">
+                                    <Setter Property="Width" Value="0"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsMultipleSourcesEnabled}" Value="True">
+                                            <Setter Property="Width" Value="*"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ColumnDefinition.Style>
+                        </ColumnDefinition>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
 
-                <Button Grid.Column="0" Style="{StaticResource DockNavButtonStyle}" Tag="{Binding IsNavBingActive}"
-                        Command="{Binding SelectSourceAndGalleryCommand}" CommandParameter="Bing">
-                    <StackPanel HorizontalAlignment="Center">
-                        <Path Data="{StaticResource IconSun}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="17" Height="17" Stretch="Uniform" HorizontalAlignment="Center"/>
-                        <TextBlock Text="{Binding BingNavTabTitle}" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" FontSize="10" Margin="0,3,0,0"/>
-                    </StackPanel>
-                </Button>
+                    <Button Grid.Column="0" Style="{StaticResource DockNavButtonStyle}" Tag="{Binding IsNavBingActive}"
+                            Command="{Binding SelectSourceAndGalleryCommand}" CommandParameter="Bing">
+                        <StackPanel HorizontalAlignment="Center">
+                            <Path Data="{StaticResource IconSun}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="19" Height="19" Stretch="Uniform" HorizontalAlignment="Center"/>
+                            <TextBlock Text="{Binding BingNavTabTitle}" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" FontSize="10" FontWeight="Medium" Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Button>
 
-                <Button Grid.Column="1" Style="{StaticResource DockNavButtonStyle}" Tag="{Binding IsNavWallhavenActive}"
-                        Command="{Binding SelectSourceAndGalleryCommand}" CommandParameter="Wallhaven"
-                        Visibility="{Binding IsMultipleSourcesEnabled, Converter={StaticResource BoolToVisibility}}">
-                    <StackPanel HorizontalAlignment="Center">
-                        <Path Data="{StaticResource IconWave}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="18" Height="18" Stretch="Uniform" HorizontalAlignment="Center"/>
-                        <TextBlock Text="Wallhaven" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" FontSize="10" Margin="0,3,0,0"/>
-                    </StackPanel>
-                </Button>
+                    <Button Grid.Column="1" Style="{StaticResource DockNavButtonStyle}" Tag="{Binding IsNavWallhavenActive}"
+                            Command="{Binding SelectSourceAndGalleryCommand}" CommandParameter="Wallhaven"
+                            Visibility="{Binding IsMultipleSourcesEnabled, Converter={StaticResource BoolToVisibility}}">
+                        <StackPanel HorizontalAlignment="Center">
+                            <Path Data="{StaticResource IconWave}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="20" Height="20" Stretch="Uniform" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Wallhaven" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" FontSize="10" FontWeight="Medium" Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Button>
 
-                <Button Grid.Column="2" Style="{StaticResource DockNavButtonStyle}" Tag="{Binding IsNavFavoritesActive}" Command="{Binding GoToFavoritesCommand}">
-                    <StackPanel HorizontalAlignment="Center">
-                        <Path Data="{StaticResource IconStar}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="16" Height="16" Stretch="Uniform" HorizontalAlignment="Center"/>
-                        <TextBlock Text="Избранное" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" FontSize="10" Margin="0,3,0,0"/>
-                    </StackPanel>
-                </Button>
+                    <Button Grid.Column="2" Style="{StaticResource DockNavButtonStyle}" Tag="{Binding IsNavFavoritesActive}" Command="{Binding GoToFavoritesCommand}">
+                        <StackPanel HorizontalAlignment="Center">
+                            <Path Data="{StaticResource IconStar}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="18" Height="18" Stretch="Uniform" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Избранное" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" FontSize="10" FontWeight="Medium" Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Button>
 
-                <Button Grid.Column="3" Style="{StaticResource DockNavButtonStyle}" Tag="{Binding IsNavMoreActive}" Command="{Binding GoToAboutCommand}">
-                    <StackPanel HorizontalAlignment="Center">
-                        <Path Data="{StaticResource IconMore}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="18" Height="18" Stretch="Uniform" HorizontalAlignment="Center"/>
-                        <TextBlock Text="Другое" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" FontSize="10" Margin="0,3,0,0"/>
-                    </StackPanel>
-                </Button>
-            </Grid>
+                    <Button Grid.Column="3" Style="{StaticResource DockNavButtonStyle}" Tag="{Binding IsNavMoreActive}" Command="{Binding GoToAboutCommand}">
+                        <StackPanel HorizontalAlignment="Center">
+                            <Path Data="{StaticResource IconMore}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="20" Height="20" Stretch="Uniform" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Другое" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" FontSize="10" FontWeight="Medium" Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Button>
+                </Grid>
+            </Border>
 
         </Grid>
     </Border>

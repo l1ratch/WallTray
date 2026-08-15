@@ -60,34 +60,88 @@ namespace BingWallTray.App
             }
             else if (e.PropertyName == "IsStatusBusy")
             {
+                Dispatcher.BeginInvoke(new Action(UpdateBusySpinner));
+            }
+            else if (e.PropertyName == "IsStatusPopupOpen")
+            {
                 Dispatcher.BeginInvoke(new Action(() =>
                 {
                     if (DataContext is MainViewModel vm)
                     {
-                        var iconText = FindVisualChildByName<System.Windows.Controls.TextBlock>(StatusBadge, "StatusIconText");
-                        if (iconText != null)
-                        {
-                            var rotateTransform = iconText.RenderTransform as RotateTransform;
-                            if (rotateTransform != null)
-                            {
-                                if (vm.IsStatusBusy)
-                                {
-                                    _spinnerStoryboard = new Storyboard { RepeatBehavior = RepeatBehavior.Forever };
-                                    var spinAnim = new DoubleAnimation(0, 360, TimeSpan.FromSeconds(0.9));
-                                    Storyboard.SetTarget(spinAnim, rotateTransform);
-                                    Storyboard.SetTargetProperty(spinAnim, new PropertyPath(RotateTransform.AngleProperty));
-                                    _spinnerStoryboard.Children.Add(spinAnim);
-                                    _spinnerStoryboard.Begin();
-                                }
-                                else
-                                {
-                                    _spinnerStoryboard?.Stop();
-                                    rotateTransform.Angle = 0;
-                                }
-                            }
-                        }
+                        AnimateStatusPanel(vm.IsStatusPopupOpen);
                     }
                 }));
+            }
+        }
+
+        private void UpdateBusySpinner()
+        {
+            if (DataContext is not MainViewModel vm) return;
+
+            var ring = FindVisualChildByName<System.Windows.Shapes.Ellipse>(StatusBadge, "BusyRing");
+            if (ring?.RenderTransform is not RotateTransform rotateTransform) return;
+
+            if (vm.IsStatusBusy)
+            {
+                _spinnerStoryboard = new Storyboard { RepeatBehavior = RepeatBehavior.Forever };
+                var spinAnim = new DoubleAnimation(0, 360, TimeSpan.FromSeconds(1.1));
+                Storyboard.SetTarget(spinAnim, rotateTransform);
+                Storyboard.SetTargetProperty(spinAnim, new PropertyPath(RotateTransform.AngleProperty));
+                _spinnerStoryboard.Children.Add(spinAnim);
+                _spinnerStoryboard.Begin();
+            }
+            else
+            {
+                _spinnerStoryboard?.Stop();
+                rotateTransform.Angle = 0;
+            }
+        }
+
+        private void AnimateStatusPanel(bool open)
+        {
+            if (StatusPanel == null) return;
+
+            if (StatusPanel.RenderTransform is not TransformGroup group) return;
+            var scale = group.Children[0] as ScaleTransform;
+            var translate = group.Children[1] as TranslateTransform;
+            if (scale == null || translate == null) return;
+
+            if (open)
+            {
+                StatusPanel.Visibility = Visibility.Visible;
+
+                var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
+                var dur = TimeSpan.FromSeconds(0.18);
+
+                StatusPanel.BeginAnimation(UIElement.OpacityProperty,
+                    new DoubleAnimation(1, dur) { EasingFunction = ease });
+                scale.BeginAnimation(ScaleTransform.ScaleXProperty,
+                    new DoubleAnimation(1, dur) { EasingFunction = ease });
+                scale.BeginAnimation(ScaleTransform.ScaleYProperty,
+                    new DoubleAnimation(1, dur) { EasingFunction = ease });
+                translate.BeginAnimation(TranslateTransform.YProperty,
+                    new DoubleAnimation(0, dur) { EasingFunction = ease });
+            }
+            else
+            {
+                var ease = new CubicEase { EasingMode = EasingMode.EaseIn };
+                var dur = TimeSpan.FromSeconds(0.14);
+
+                var fade = new DoubleAnimation(0, dur) { EasingFunction = ease };
+                fade.Completed += (_, _) =>
+                {
+                    if (DataContext is MainViewModel vm && !vm.IsStatusPopupOpen)
+                    {
+                        StatusPanel.Visibility = Visibility.Collapsed;
+                    }
+                };
+                StatusPanel.BeginAnimation(UIElement.OpacityProperty, fade);
+                scale.BeginAnimation(ScaleTransform.ScaleXProperty,
+                    new DoubleAnimation(0.94, dur) { EasingFunction = ease });
+                scale.BeginAnimation(ScaleTransform.ScaleYProperty,
+                    new DoubleAnimation(0.94, dur) { EasingFunction = ease });
+                translate.BeginAnimation(TranslateTransform.YProperty,
+                    new DoubleAnimation(-10, dur) { EasingFunction = ease });
             }
         }
 
