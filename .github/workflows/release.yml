@@ -4,6 +4,15 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version (e.g. 26.8.0)'
+        required: false
+        default: '26.8.0'
+
+permissions:
+  contents: write
 
 jobs:
   build-and-release:
@@ -31,7 +40,13 @@ jobs:
         id: get_release_info
         shell: pwsh
         run: |
-          $tag = "${{ github.ref_name }}".TrimStart('v', 'V')
+          $tag = "${{ github.event.inputs.version }}"
+          if ([string]::IsNullOrWhiteSpace($tag)) {
+              $tag = "${{ github.ref_name }}".TrimStart('v', 'V')
+          }
+          if ($tag -eq "main" -or [string]::IsNullOrWhiteSpace($tag)) {
+              $tag = "26.8.0"
+          }
           echo "VERSION=$tag" >> $env:GITHUB_OUTPUT
           
           if (!(Test-Path "Releases")) { New-Item -ItemType Directory -Path "Releases" -Force | Out-Null }
