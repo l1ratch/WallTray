@@ -32,7 +32,6 @@ namespace BingWallTray.App
         private ITrayService? _trayService;
         private ISchedulerService? _schedulerService;
         private IWallhavenService? _wallhavenService;
-        private IWingetService? _wingetService;
 
         private MainViewModel? _mainViewModel;
         private MainWindow? _mainWindow;
@@ -59,6 +58,9 @@ namespace BingWallTray.App
 
         protected override async void OnStartup(StartupEventArgs e)
         {
+            // Обработка хуков установки/обновления Velopack перед любыми другими операциями
+            Velopack.VelopackApp.Build().Run();
+
             const string mutexName = "Local\\WallTrayMutex_171a8f9";
             _appMutex = new System.Threading.Mutex(true, mutexName, out bool createdNew);
             if (!createdNew)
@@ -128,7 +130,6 @@ namespace BingWallTray.App
             _gitHubUpdateService = new GitHubUpdateService(_logger);
             _notificationService = new NotificationService(_settingsService, _logger);
             _wallhavenService = new WallhavenService(_logger);
-            _wingetService = new WingetService(_logger);
 
             // Перехват уведомления о поврежденном JSON
             string? brokenSettingsFile = null;
@@ -187,8 +188,7 @@ namespace BingWallTray.App
                 _notificationService,
                 _appState,
                 _bingService,
-                _wallhavenService,
-                _wingetService
+                _wallhavenService
             );
 
             // ponytail: CLI mode to set wallpaper and exit immediately

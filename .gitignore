@@ -1,11 +1,13 @@
-## .NET / VS Build Outputs
+## Build and Compilation Outputs
 [Bb]in/
 [Oo]bj/
 [Pp]ublish/
-[Rr]elease/
-[Dd]ebug/
+publish/
+[Rr]eleases/
+Releases/
+TestResults/
 
-## IDE and Editor Files (.vs, .vscode, Rider, etc.)
+## IDE and Editor Files
 .vs/
 .idea/
 .vscode/
@@ -17,14 +19,16 @@
 *.userprefs
 mono_crash.*
 
-## NuGet Packages
+## NuGet Packages and Tools
 packages/
+*.nupkg
+*.snupkg
 *.nuget.props
 *.nuget.targets
 project.lock.json
 project.assets.json
 
-## OS generated files
+## OS and Environment Files
 .DS_Store
 .DS_Store?
 ._*
@@ -32,21 +36,25 @@ project.assets.json
 .Trashes
 ehthumbs.db
 Thumbs.db
+desktop.ini
 
-## App local runtime caches and configurations
+## App Local Runtime Caches, Logs and Backups
 *.log
+logs/
 today_cache.json
 favorites.json
 settings.json
 wallpapers.json
 *.json.bak
+*.bak
+*.tmp
+*.cache
 
-## Local build artifacts and deployment
-public/
-*.exe
-*.dll
-*.pdb
-*.msi
+## Local Build and Packaging Scripts
+build-release.ps1
 
-## Agent coordination files (internal development only)
+## Internal Agent / AI Instructions and Memory
 .agent/
+AGENTS.md
+APP_MAP.md
+GEMINI.md

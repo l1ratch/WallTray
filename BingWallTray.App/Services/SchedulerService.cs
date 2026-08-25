@@ -91,7 +91,7 @@ namespace BingWallTray.App.Services
                                 }
                             }
                         }
-                        _appState.TodayImages = cached;
+                        _appState.TodayImages = cached.OrderByDescending(x => x.StartDate).ToList();
                     }
                 }
             }
@@ -267,7 +267,7 @@ namespace BingWallTray.App.Services
                 }
 
                 // 3. Сохраняем подборку в AppState
-                _appState.TodayImages = latestImages;
+                _appState.TodayImages = latestImages.OrderByDescending(x => x.StartDate).ToList();
 
                 // Записываем полученную подборку в кэш
                 try

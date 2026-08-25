@@ -1,88 +1,111 @@
 # WallTray
 
-[![Build Status](https://img.shields.io/badge/.NET-8.0-blue.svg)](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
-[![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%2F%2011-lightgrey.svg)](https://www.microsoft.com/windows)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+<div align="center">
+  <img src="BingWallTray.App/Assets/logo.png" width="128" height="128" alt="WallTray Logo" />
+  <h3>Автоматическая установка и каталогизация обоев для Windows</h3>
+  <p>Быстрая, минималистичная и элегантная утилита в системном трее Windows 10/11 на базе .NET 8 и WPF</p>
 
-**WallTray** (formerly *BingWallTray*) is a lightweight, modern Windows system tray utility designed to automatically download, cache, and rotate desktop wallpapers from multiple premium sources including **Bing Daily** and **Wallhaven**. 
-
-Built using C# and .NET 8 WPF, it features a state-of-the-art **Fluent UI** with acrylic transparencies, smooth animations, and an intuitive layout designed to blend seamlessly with Windows 11.
-
----
-
-## Key Features
-
-- 🖼️ **Multi-Source Wallpapers**: Automatically fetch fresh high-quality images from:
-  - **Bing Daily Wallpaper** (full UHD/4K resolution support)
-  - **Wallhaven API** (with custom tags, search queries, aspect ratios, and resolution filters)
-- 🔄 **Advanced Auto-Rotation**: Set custom cycles to change wallpapers based on preconfigured time plans or custom intervals.
-- ⭐ **Favorites Gallery**: Save your favorite wallpapers to a local database and configure auto-rotation exclusively from your favorites.
-- 🎨 **Premium Fluent UI**: Beautiful dark-theme layout with:
-  - Glassmorphic panels and thin borders
-  - Active-state underline indicator pills
-  - Floating bottom navigation dock
-  - Real-time instant status badge in the header
-- ⚙️ **Rich Diagnostics & Maintenance**:
-  - View network status, API responsiveness, and monitor system parameters.
-  - Track local cache metrics (total wallpaper items count and disk size in MB).
-  - Clear local image cache, GitHub archive logs, or system logs in one click.
-  - Integrated real-time Console Log Viewer directly inside the diagnostics page.
-- 🚀 **Performance & Portability**: Runs as a single portable self-contained executable file. Zero installation or administrative privileges required. Includes auto-start on Windows boot option.
+  <p>
+    <a href="https://github.com/l1ratch/WallTray/releases"><img src="https://img.shields.io/github/v/release/l1ratch/WallTray?label=Release&color=0078d4" alt="Release" /></a>
+    <a href="https://dotnet.microsoft.com/download/dotnet/8.0"><img src="https://img.shields.io/badge/.NET-8.0%20WPF-512bd4.svg" alt=".NET 8" /></a>
+    <a href="https://velopack.io"><img src="https://img.shields.io/badge/Updates-Velopack-blueviolet" alt="Velopack" /></a>
+    <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-2ecc71.svg" alt="License" /></a>
+  </p>
+</div>
 
 ---
 
-## UI Preview
+## 🌟 Ключевые возможности
 
-### Main Wallpapers Gallery & Settings
-- **Gallery Grid**: Browse today's wallpapers and historical archives. Double-click to inspect, preview details, or set as background.
-- **Header Status Badge**: Shows the last check time (e.g. `✓ 12:34`) and features a matte glass popover displaying network connectivity and backend states.
+- ☀️ **Bing Image of the Day**:
+  - Ежедневные официальные обои Microsoft в максимальном разрешении **4K UHD (3840×2160)**.
+  - Поддержка выбора региона контента (`ru-RU`, `en-US`, `de-DE`, `fr-FR`, `ja-JP`, `zh-CN`).
+  - Просмотр исторического архива обоев за предыдущие дни и недели.
+- 🌊 **Каталог Wallhaven.cc**:
+  - Полноценная интеграция открытого каталога Wallhaven.
+  - Наглядные фильтры категорий (*General*, *Anime*, *People*).
+  - Быстрый поиск по тегам (*nature*, *space*, *cyberpunk*, *landscape*, *minimalism*, *cars*, *fantasy*).
+  - Фильтрация по разрешениям экрана (*Full HD*, *2K QHD*, *4K UHD*, *UltraWide 21:9*).
+- 🖥️ **Поддержка любых мультимониторных конфигураций**:
+  - Автоматическое определение реального физического разрешения, частоты обновления (Гц) и соотношения сторон каждого подключенного экрана.
+  - Функция автоподбора обоев под мониторы в один клик.
+- ⏱️ **Гибкая автосмена обоев**:
+  - Смена по таймеру (15м, 30м, 1ч, 2ч, 6ч, 12ч, 24ч или произвольный интервал).
+  - Смена при запуске системы или комбинация интервала и старта.
+  - Источники для автосмены: *Сегодняшние Bing*, *Случайные Bing* или *Избранное*.
+- ⭐ **Быстрое избранное и надежный кэш**:
+  - Добавление и удаление обоев в избранное в один клик.
+  - Хранение кэша изолировано в `%LocalAppData%\WallTray`, что исключает конфликты и зависания при синхронизации с облаком (OneDrive).
+  - Автоматическая очистка старых обоев с гарантированным сохранением избранных.
+- 🚀 **Бесшовные автообновления (Velopack)**:
+  - Автоматическая проверка новых релизов с поддержкой дельта-обновлений (минимум трафика).
+  - Фоновое скачивание с индикатором прогресса и мгновенный перезапуск с применением патча.
+  - Возможность участия в канале предварительных сборок (*Preview/Beta*).
+- 🎨 **Современный интерфейс Windows 11 Fluent**:
+  - Тёмная матовая тема с акриловыми эффектами и плавными анимациями.
+  - Сверхтонкие плавающие скроллбары (5px в стиле iOS / macOS).
+  - Чёткая векторная графика (SVG) без размытия при любом масштабе экрана (DPI).
 
 ---
 
-## Installation & Deployment
+## 📥 Установка и запуск
 
-### Option 1: Portable Version (Recommended)
-1. Download the latest `WallTray.exe` from the [Releases](https://github.com/your-username/BingWallTray/releases) page.
-2. Place the executable in any folder (e.g., `C:\Users\username\AppData\Local\Programs\WallTray`).
-3. Run the application. It will launch directly into the system tray.
+### Способ 1: Автоматический установщик Velopack (Рекомендуется)
+1. Скачайте `WallTray-Setup.exe` со страницы [Релизов](https://github.com/l1ratch/WallTray/releases).
+2. Запустите установщик. Приложение автоматически установится, создаст ярлыки и запустится в системном трее.
+3. Все последующие обновления будут доставляться и применяться автоматически.
 
-### Option 2: Silent Updater & Startup
-The app contains an integrated silent updater that checks GitHub for new releases. Enable **"Start with Windows"** in the Settings tab to ensure the tray is always active.
-
----
-
-## Technical Stack & Architecture
-
-- **Framework**: .NET 8.0 Windows (WPF)
-- **Pattern**: Model-View-ViewModel (MVVM)
-- **Settings & Caching**: Unified JSON file database with atomic writing, locks handling, and automated `.bak` backups to prevent data corruption.
-- **Footprint**: Designed with the **YAGNI** (You Aren't Gonna Need It) principle, relying on the standard library and native platform features for maximum speed and memory efficiency.
+### Способ 2: Портативная версия (Standalone)
+1. Скачайте архив `WallTray-win-x64.zip` или файл `WallTray.exe`.
+2. Распакуйте в любую удобную папку и запустите. Программа не требует прав администратора.
 
 ---
 
-## Development & Building
+## 🛠️ Сборка из исходного кода
 
-### Prerequisites
-- [Visual Studio 2022](https://visualstudio.microsoft.com/) (with .NET Desktop Development workload) or [JetBrains Rider](https://www.jetbrains.com/rider/).
-- [.NET 8.0 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0).
+### Требования:
+- [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+- [Velopack CLI](https://velopack.io) (устанавливается командой `dotnet tool install -g vpk`)
+- Windows 10 (1809+) или Windows 11 (x64)
 
-### Build from Command Line
-To compile the project and publish a release build:
+### Сборка и тестирование:
 
-```bash
-# Clone the repository
-git clone https://github.com/your-username/BingWallTray.git
-cd BingWallTray
+```powershell
+# 1. Клонирование репозитория
+git clone https://github.com/l1ratch/WallTray.git
+cd WallTray
 
-# Run automated tests
+# 2. Запуск автоматических тестов
 dotnet test
 
-# Publish self-contained single file executable
-dotnet publish -c Release -o publish
+# 3. Публикация приложения
+dotnet publish BingWallTray.App/BingWallTray.App.csproj -c Release -r win-x64 --no-self-contained -o ./publish/win-x64
+
+# 4. Создание Velopack пакета и инсталлятора (vpk)
+vpk pack --packId WallTray --packVersion 26.8.0 --packDir ./publish/win-x64 --mainExe WallTray.exe --icon BingWallTray.App/Assets/app.ico --outputDir ./Releases
 ```
 
 ---
 
-## License
+## 🏗️ Архитектура и стек технологий
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+- **Платформа**: .NET 8.0 (Windows Desktop SDK).
+- **UI Framework**: Windows Presentation Foundation (WPF) с кастомной темой Fluent Dark.
+- **Архитектура**: Model-View-ViewModel (MVVM) с разделением ответственности сервисов.
+- **Хранение данных**: Атомарный `WallpaperCacheService` с защитой от повреждения файлов (`.bak` резервные копии и файловые блокировки).
+- **Схема версионирования**: Календарное версионирование (**CalVer**) в формате `YY.M.Patch` (например: `26.8.0`).
+
+---
+
+## 📜 Лицензия и правовая информация
+
+- **Код приложения**: Распространяется свободно под лицензией [MIT License](LICENSE).
+- **Bing Image of the Day**: Фоновые изображения защищены авторским правом корпорации Microsoft и соответствующих фотографов. Изображения предоставляются исключительно для личного некоммерческого использования в качестве обоев рабочего стола.
+- **Wallhaven.cc**: Изображения принадлежат их авторам и сообществу Wallhaven; используются через открытый публичный API сервиса.
+- **Пиктограммы**: Векторные иконки [Material Design Icons](https://pictogrammers.com/library/mdi/) (Apache 2.0).
+
+---
+
+<div align="center">
+  <sub>Разработано с заботой о производительности и эстетике рабочего стола • © 2026 l1ratch</sub>
+</div>

@@ -28,7 +28,7 @@ namespace BingWallTray.App.Services
             {
                 if (!_httpClient.DefaultRequestHeaders.Contains("User-Agent"))
                 {
-                    var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "2026.8.0";
+                    var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "26.8.0";
                     _httpClient.DefaultRequestHeaders.Add("User-Agent", $"BingWallTray/{version} (.NET 8 WPF Wallpaper Utility)");
                 }
             }
@@ -123,7 +123,7 @@ namespace BingWallTray.App.Services
                     result.Add(img);
                 }
 
-                return result;
+                return result.OrderByDescending(x => x.StartDate).ToList();
             }
             catch (HttpRequestException ex)
             {
@@ -218,7 +218,7 @@ namespace BingWallTray.App.Services
                 _logger.LogError("Ошибка при получении или парсинге архива с GitHub", ex);
             }
 
-            return result;
+            return result.OrderByDescending(x => x.StartDate).ToList();
         }
 
         private string CleanBingUrl(string url, bool useUhd)

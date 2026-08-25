@@ -7,11 +7,27 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
-    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+    
+    <!-- Имя сборки и иконка -->
     <AssemblyName>WallTray</AssemblyName>
-    <Version>2026.8.0</Version>
-    <AssemblyVersion>2026.8.0</AssemblyVersion>
-    <FileVersion>2026.8.0</FileVersion>
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+    
+    <!-- Метаданные сборки и свойства исполняемого файла -->
+    <Product>WallTray</Product>
+    <AssemblyTitle>WallTray</AssemblyTitle>
+    <Authors>l1ratch</Authors>
+    <Company>l1ratch</Company>
+    <Description>WallTray — Автоматическая установка и каталогизация обоев Bing Image of the Day и Wallhaven для Windows</Description>
+    <Copyright>© 2026 l1ratch. All rights reserved.</Copyright>
+    <RepositoryUrl>https://github.com/l1ratch/WallTray</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/l1ratch/WallTray</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    
+    <!-- Версионирование CalVer (YY.M.Patch) -->
+    <Version>26.8.0</Version>
+    <AssemblyVersion>26.8.0.0</AssemblyVersion>
+    <FileVersion>26.8.0.0</FileVersion>
+    <InformationalVersion>26.8.0</InformationalVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,6 +38,10 @@
     <None Update="Assets\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Velopack" Version="1.2.0" />
   </ItemGroup>
 
 </Project>

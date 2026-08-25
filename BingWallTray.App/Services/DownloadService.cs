@@ -29,7 +29,7 @@ namespace BingWallTray.App.Services
             _logger = logger;
             if (!_httpClient.DefaultRequestHeaders.Contains("User-Agent"))
             {
-                var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "2026.8.0";
+                var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "26.8.0";
                 _httpClient.DefaultRequestHeaders.Add("User-Agent", $"BingWallTray/{version} (.NET 8 WPF Wallpaper Utility)");
             }
         }

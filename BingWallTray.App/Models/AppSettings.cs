@@ -36,6 +36,7 @@ namespace BingWallTray.App.Models
         public string AutoChangeTrigger { get; set; } = "Interval"; // Interval, Startup, Both
         public string AutoChangeInterval { get; set; } = "12h";
         public string WallhavenResolutions { get; set; } = string.Empty;
+        public bool IncludePrereleases { get; set; } = false;
 
         [System.Runtime.InteropServices.DllImport("user32.dll")]
         private static extern int GetSystemMetrics(int nIndex);

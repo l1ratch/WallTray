@@ -1,34 +1,24 @@
-# WallTray Changelog & Goals Tracker
+# Changelog
 
-This file tracks completed features, active goals, deferred backlog, and rejected ideas.
-
-## Project Vision
-To keep WallTray a lightweight, modern, robust background utility that works out-of-the-box, requires no configuration, and looks stunning.
+Все ключевые изменения в WallTray документируются в этом файле.
+Формат основан на [Keep a Changelog](https://keepachangelog.com/ru/1.0.0/) и следует стандарту **CalVer** (`YY.M.Patch`, например `26.8.0`).
 
 ---
 
-## Active Status Board
+## [26.8.0] - 2026-08-25
 
-- `[x]` **Unified Cache Database**: Implemented `WallpaperCacheService` with atomic backups.
-- `[x]` **Fluent Design Redesign**: Overhauled UI to Windows 11 style, with translucent borders, accent-color underlines, and a header badge.
-- `[x]` **Fixed Navigation Pages**: Bound ListBox to `SelectedNavIndex` to decouple TabControl order and fix mismatched button pages.
-- `[x]` **Compact Floating Navigation**: Removed large bottom bar paddings to sit tightly at the bottom edge.
-- `[x]` **Instant Header Status Widget**: Replaced the bottom status footer with a top-right badge showing last check time, featuring an instant matte glass popup.
-- `[x]` **CalVer Versioning**: Transitioned to the calendar-based standard `2026.8.0` with dynamic informational version support.
-- `[x]` **Workspace Clean up**: Deleted obsolete specification files and `.pdf` instructions, updated `.gitignore`.
-- `[ ]` **Weekly Bing Multi-Wallpaper Download Plan**: Optimize background update cycles to download 7 wallpapers at once (under discussion).
+### 🌟 Ключевые возможности
+- **Bing Image of the Day**: Ежедневные официальные обои в сверхвысоком разрешении **4K UHD (3840×2160)** с поддержкой архива и регионов.
+- **Каталог Wallhaven.cc**: Прямой поиск обоев с фильтрами категорий (*General*, *Anime*, *People*), разрешениями и популярными тегами.
+- **Мультимониторность**: Аппаратное определение реальных физических разрешений, частоты (Гц) и пропорций всех экранов без искажений системного масштабирования.
+- **Windows 11 Fluent UI**: Тёмная матовая тема с акриловыми акцентами, тонкими плавающими скроллбарами (5px) и чёткими векторными чекбоксами.
+- **Velopack Автообновления**: Фоновое скачивание дельта-патчей и мгновенное обновление при перезапуске.
 
----
+### 🛠️ Архитектура и надежность
+- **Изоляция в AppData**: Кэш и настройки хранятся в `%LocalAppData%\WallTray` без блокировок синхронизации с OneDrive.
+- **Целостность данных**: Атомарная запись настроек и кэша с автоматическими резервными копиями (`.bak`).
+- **Фоновая оптимизация**: Минимальный расход оперативной памяти, плавная фоновая смена обоев без фризов интерфейса.
 
-## History of Revisions
-
-### Version 2026.8.0 (Current)
-- Introduced **Dual-Window Architecture**: Decoupled quick tray flyout (`MainWindow`) from full-featured standalone settings window (`SettingsWindow`).
-- Implemented **Windows 11 Fluent UI Overhaul**: Added animated `ToggleSwitch` controls, rounded container frame clipping (`ClipToBounds="True"`), and refined dark cards.
-- Integrated **Winget Package Management (`WingetService.cs`)**: Native detection and one-click upgrades for package `l1ratch.WallTray`.
-- Fixed navigation accent pill glitches and added global `BoolToVisibility` converter registration.
-- Added comprehensive documentation: `APP_MAP.md` update and new `CONCEPT_AND_STATUS.md`.
-
-### Version 1.0.0 (Legacy)
-- Initial release with Bing Daily, Spotlight, and Wallhaven support.
-- Basic MVVM layout, settings, and automatic wallpaper change interval.
+### 📦 Дистрибуция
+- Официальный установщик: `WallTray-Setup.exe` (автосоздание ярлыков, автозапуск, автообновления).
+- Портативная версия: `WallTray-Portable.zip`.

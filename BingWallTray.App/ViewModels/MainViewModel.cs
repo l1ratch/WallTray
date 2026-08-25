@@ -25,12 +25,11 @@ namespace BingWallTray.App.ViewModels
         private readonly IDownloadService _downloadService;
         private readonly IBingService _bingService;
         private readonly IWallhavenService _wallhavenService;
-        private readonly IWingetService _wingetService;
         private readonly AppState _appState;
 
         private BingImage? _selectedImage;
         private bool _isSelectedImageFavorite;
-        private string _appVersion = "2026.8.0";
+        private string _appVersion = "26.8.0";
         private string _updateStatusText = "Проверить обновления";
         private bool _isCheckingUpdate = false;
         private bool _isUpdateAvailable = false;
@@ -817,8 +816,7 @@ namespace BingWallTray.App.ViewModels
             INotificationService notificationService,
             AppState appState,
             IBingService bingService,
-            IWallhavenService wallhavenService,
-            IWingetService wingetService)
+            IWallhavenService wallhavenService)
         {
             _settingsService = settingsService;
             _historyService = historyService;
@@ -848,7 +846,6 @@ namespace BingWallTray.App.ViewModels
             };
             _bingService = bingService;
             _wallhavenService = wallhavenService;
-            _wingetService = wingetService;
 
             var informationalVersion = Assembly.GetExecutingAssembly()
                 .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
@@ -859,7 +856,7 @@ namespace BingWallTray.App.ViewModels
                 informationalVersion = informationalVersion.Split('+')[0];
             }
 
-            AppVersion = informationalVersion ?? "2026.8.0";
+            AppVersion = informationalVersion ?? "26.8.0";
 
             SetWallpaperCommand = new RelayCommand(async () => await OnSetWallpaperAsync(), () => IsImageSelected);
             ToggleFavoriteCommand = new RelayCommand(async () => await OnToggleFavoriteAsync(), () => IsImageSelected);
@@ -957,7 +954,7 @@ namespace BingWallTray.App.ViewModels
                 img.Source = "Bing";
             }
 
-            TodayImages = new ObservableCollection<BingImage>(list);
+            TodayImages = new ObservableCollection<BingImage>(list.OrderByDescending(x => x.StartDate));
 
 
 
@@ -1123,20 +1120,81 @@ namespace BingWallTray.App.ViewModels
         {
             if (CurrentSource == "Wallhaven")
             {
-                DisplayedImages = new ObservableCollection<BingImage>(_wallhavenImages);
+                var wallhavenUnique = new List<BingImage>();
+                var seenKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                foreach (var img in _wallhavenImages)
+                {
+                    if (img == null) continue;
+                    var key = GetImageKey(img);
+                    if (seenKeys.Add(key))
+                    {
+                        wallhavenUnique.Add(img);
+                    }
+                }
+                DisplayedImages = new ObservableCollection<BingImage>(wallhavenUnique);
             }
             else
             {
-                var list = new List<BingImage>(TodayImages);
-                foreach (var img in _historicalArchiveImages.Take(_historicalLoadedCount))
+                var list = new List<BingImage>();
+                var seenKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                var seenIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                var seenTitles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+                // 1. Сначала добавляем актуальные обои Bing
+                if (TodayImages != null)
                 {
-                    var imgId = GetImageId(img);
-                    if (!list.Any(i => GetImageId(i) == imgId))
+                    foreach (var img in TodayImages)
                     {
-                        list.Add(img);
+                        if (img == null) continue;
+                        var key = GetImageKey(img);
+                        var id = GetImageId(img);
+                        var title = img.Title?.Trim() ?? string.Empty;
+
+                        bool isDuplicate = (!string.IsNullOrEmpty(key) && seenKeys.Contains(key)) ||
+                                           (!string.IsNullOrEmpty(id) && seenIds.Contains(id)) ||
+                                           (!string.IsNullOrEmpty(title) && seenTitles.Contains(title));
+
+                        if (!isDuplicate)
+                        {
+                            if (!string.IsNullOrEmpty(key)) seenKeys.Add(key);
+                            if (!string.IsNullOrEmpty(id)) seenIds.Add(id);
+                            if (!string.IsNullOrEmpty(title)) seenTitles.Add(title);
+                            list.Add(img);
+                        }
                     }
                 }
-                DisplayedImages = new ObservableCollection<BingImage>(list);
+
+                // 2. Добавляем исторический архив с надежной дедупликацией
+                if (_historicalArchiveImages != null)
+                {
+                    foreach (var img in _historicalArchiveImages.Take(_historicalLoadedCount))
+                    {
+                        if (img == null) continue;
+                        var key = GetImageKey(img);
+                        var id = GetImageId(img);
+                        var title = img.Title?.Trim() ?? string.Empty;
+
+                        bool isDuplicate = (!string.IsNullOrEmpty(key) && seenKeys.Contains(key)) ||
+                                           (!string.IsNullOrEmpty(id) && seenIds.Contains(id)) ||
+                                           (!string.IsNullOrEmpty(title) && seenTitles.Contains(title));
+
+                        if (!isDuplicate)
+                        {
+                            if (!string.IsNullOrEmpty(key)) seenKeys.Add(key);
+                            if (!string.IsNullOrEmpty(id)) seenIds.Add(id);
+                            if (!string.IsNullOrEmpty(title)) seenTitles.Add(title);
+                            list.Add(img);
+                        }
+                    }
+                }
+
+                // 3. Строгая сортировка по дате от свежих к старым
+                var sorted = list
+                    .Where(x => x != null)
+                    .OrderByDescending(x => x.StartDate)
+                    .ToList();
+
+                DisplayedImages = new ObservableCollection<BingImage>(sorted);
             }
         }
 
@@ -1597,7 +1655,7 @@ namespace BingWallTray.App.ViewModels
 
             try
             {
-                var result = await _updateService.CheckForUpdatesAsync("l1ratch", "BingWallTray");
+                var result = await _updateService.CheckForUpdatesAsync("l1ratch", "WallTray", Settings.IncludePrereleases);
                 if (result.IsUpdateAvailable)
                 {
                     IsUpdateAvailable = true;
@@ -1704,6 +1762,60 @@ namespace BingWallTray.App.ViewModels
         private void OnClearKeywordQuery()
         {
             WallhavenQuery = string.Empty;
+        }
+
+        private static string ExtractBingBaseName(string url)
+        {
+            if (string.IsNullOrEmpty(url)) return string.Empty;
+            try
+            {
+                int idIdx = url.IndexOf("id=", StringComparison.OrdinalIgnoreCase);
+                string name = string.Empty;
+                if (idIdx >= 0)
+                {
+                    name = url.Substring(idIdx + 3);
+                    int amp = name.IndexOf('&');
+                    if (amp >= 0) name = name.Substring(0, amp);
+                }
+                else
+                {
+                    name = Path.GetFileNameWithoutExtension(url);
+                }
+
+                if (!string.IsNullOrEmpty(name))
+                {
+                    int firstUnderscore = name.IndexOf('_');
+                    if (firstUnderscore > 0)
+                    {
+                        return name.Substring(0, firstUnderscore).ToLowerInvariant();
+                    }
+                    return name.ToLowerInvariant();
+                }
+            }
+            catch { }
+            return string.Empty;
+        }
+
+        private string GetImageKey(BingImage img)
+        {
+            if (img == null) return string.Empty;
+            if (img.Url.Contains("wallhaven.cc", StringComparison.OrdinalIgnoreCase))
+            {
+                return "wh_" + Path.GetFileNameWithoutExtension(img.Url).ToLowerInvariant();
+            }
+
+            string baseName = ExtractBingBaseName(img.Url);
+            if (!string.IsNullOrEmpty(baseName))
+            {
+                return "bing_" + baseName;
+            }
+
+            if (!string.IsNullOrEmpty(img.StartDate))
+            {
+                return "bing_date_" + img.StartDate;
+            }
+
+            return "bing_url_" + img.Url.ToLowerInvariant();
         }
 
         private string GetImageId(BingImage img)
@@ -1827,7 +1939,6 @@ namespace BingWallTray.App.ViewModels
                         _historyService,
                         _startupService,
                         _logger,
-                        _wingetService,
                         _updateService,
                         _notificationService,
                         () => win?.Close(),

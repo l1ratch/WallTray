@@ -1,0 +1,74 @@
+name: Release WallTray
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Install Velopack CLI (vpk)
+        run: dotnet tool install -g vpk
+
+      - name: Publish Application
+        run: |
+          dotnet publish BingWallTray.App/BingWallTray.App.csproj -c Release -r win-x64 --no-self-contained -o ./publish/win-x64
+
+      - name: Extract Version and Release Notes
+        id: get_release_info
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}".TrimStart('v', 'V')
+          echo "VERSION=$tag" >> $env:GITHUB_OUTPUT
+          
+          if (!(Test-Path "Releases")) { New-Item -ItemType Directory -Path "Releases" -Force | Out-Null }
+          $notesFile = "Releases/RELEASE_NOTES.md"
+          
+          if (Test-Path "CHANGELOG.md") {
+              $changelog = Get-Content "CHANGELOG.md" -Raw -Encoding UTF8
+              $escapedVer = [regex]::Escape($tag)
+              $pattern = "(?s)##\s*\[?" + $escapedVer + "\]?[^\r\n]*\r?\n(.*?)(?=\r?\n##\s*\[|\Z)"
+              if ($changelog -match $pattern) {
+                  $notes = $matches[1].Trim()
+                  [System.IO.File]::WriteAllText($notesFile, $notes, [System.Text.Encoding]::UTF8)
+                  Write-Host "Extracted release notes for v$tag"
+              } else {
+                  [System.IO.File]::WriteAllText($notesFile, "Release WallTray v$tag", [System.Text.Encoding]::UTF8)
+              }
+          } else {
+              [System.IO.File]::WriteAllText($notesFile, "Release WallTray v$tag", [System.Text.Encoding]::UTF8)
+          }
+
+      - name: Build Velopack Release Package
+        shell: pwsh
+        run: |
+          vpk pack `
+            --packId WallTray `
+            --packVersion ${{ steps.get_release_info.outputs.VERSION }} `
+            --packDir ./publish/win-x64 `
+            --mainExe WallTray.exe `
+            --icon BingWallTray.App/Assets/app.ico `
+            --releaseNotes Releases/RELEASE_NOTES.md `
+            --outputDir ./Releases
+
+      - name: Upload to GitHub Releases
+        shell: pwsh
+        run: |
+          vpk upload github `
+            --publish `
+            --repoUrl "https://github.com/l1ratch/WallTray" `
+            --token "${{ secrets.GITHUB_TOKEN }}" `
+            --outputDir ./Releases
