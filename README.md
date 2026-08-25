@@ -6,7 +6,8 @@
   <p>Быстрая, минималистичная и элегантная утилита в системном трее Windows 10/11 на базе .NET 8 и WPF</p>
 
   <p>
-    <a href="https://github.com/l1ratch/WallTray/releases"><img src="https://img.shields.io/github/v/release/l1ratch/WallTray?label=Release&color=0078d4" alt="Release" /></a>
+    <a href="https://project.l1ratch.ru/WallTray/"><img src="https://img.shields.io/badge/Website-project.l1ratch.ru-0078d4" alt="Website" /></a>
+    <a href="https://github.com/l1ratch/WallTray/releases"><img src="https://img.shields.io/github/v/release/l1ratch/WallTray?label=Release&color=2ecc71" alt="Release" /></a>
     <a href="https://dotnet.microsoft.com/download/dotnet/8.0"><img src="https://img.shields.io/badge/.NET-8.0%20WPF-512bd4.svg" alt=".NET 8" /></a>
     <a href="https://velopack.io"><img src="https://img.shields.io/badge/Updates-Velopack-blueviolet" alt="Velopack" /></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-2ecc71.svg" alt="License" /></a>

@@ -1472,6 +1472,14 @@
                             <!-- Ссылки и репозиторий -->
                             <TextBlock Text="РЕСУРСЫ И СООБЩЕСТВО" Style="{StaticResource SectionGroupHeader}"/>
 
+                            <Border Style="{StaticResource SettingsCard}" Margin="0,0,0,10">
+                                <StackPanel>
+                                    <TextBlock Text="Официальный сайт WallTray" FontWeight="Medium" Foreground="#ffffff" FontSize="13"/>
+                                    <TextBlock Text="Новости проекта, документация, скриншоты и последние сборки" Foreground="#888888" FontSize="11" Margin="0,3,0,10" TextWrapping="Wrap"/>
+                                    <Button Content="Перейти на сайт проекта" Style="{StaticResource LinkButton}" Command="{Binding OpenUrlCommand}" CommandParameter="https://project.l1ratch.ru/WallTray/" HorizontalAlignment="Left"/>
+                                </StackPanel>
+                            </Border>
+
                             <Border Style="{StaticResource SettingsCard}">
                                 <StackPanel>
                                     <TextBlock Text="Исходный код открыт на GitHub" FontWeight="Medium" Foreground="#ffffff" FontSize="13"/>
