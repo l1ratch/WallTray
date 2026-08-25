@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using BingWallTray.App.Models;
 using BingWallTray.App.Services;
+using BingWallTray.App.Utils;
 
 namespace BingWallTray.App.ViewModels
 {
@@ -350,8 +351,7 @@ namespace BingWallTray.App.ViewModels
             {
                 try
                 {
-                    string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                    string logFolder = Path.Combine(appData, "WallTray", "Logs");
+                    string logFolder = AppPaths.LogFolder;
                     string fullPath = Path.Combine(logFolder, $"app-{DateTime.Today:yyyyMMdd}.log");
                     if (File.Exists(fullPath))
                     {
@@ -469,8 +469,7 @@ namespace BingWallTray.App.ViewModels
         {
             try
             {
-                string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                string logFolder = Path.Combine(appData, "WallTray", "Logs");
+                string logFolder = AppPaths.LogFolder;
                 if (Directory.Exists(logFolder))
                 {
                     System.Diagnostics.Process.Start("explorer.exe", $"\"{logFolder}\"");
@@ -486,8 +485,7 @@ namespace BingWallTray.App.ViewModels
         {
             try
             {
-                string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                string logFolder = Path.Combine(appData, "WallTray", "Logs");
+                string logFolder = AppPaths.LogFolder;
                 if (Directory.Exists(logFolder))
                 {
                     var files = Directory.GetFiles(logFolder, "*.log");

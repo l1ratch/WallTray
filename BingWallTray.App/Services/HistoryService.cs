@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using BingWallTray.App.Models;
+using BingWallTray.App.Utils;
 
 namespace BingWallTray.App.Services
 {
@@ -34,8 +35,7 @@ namespace BingWallTray.App.Services
             _settingsService = settingsService;
             _cacheService = cacheService;
 
-            string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            _favoritesFilePath = Path.Combine(appData, "WallTray", "favorites.json");
+            _favoritesFilePath = AppPaths.FavoritesFilePath;
         }
 
         private async Task EnsureMigratedAsync()
@@ -80,6 +80,37 @@ namespace BingWallTray.App.Services
 
         private WallpaperHistoryItem MapToHistoryItem(WallpaperCacheItem cacheItem)
         {
+            string localPath = cacheItem.LocalPath;
+            if (!string.IsNullOrEmpty(localPath) &&
+                (localPath.Contains(@"\OneDrive\", StringComparison.OrdinalIgnoreCase) ||
+                 localPath.Contains(@"\Pictures\", StringComparison.OrdinalIgnoreCase) ||
+                 localPath.Contains(@"\Изображения\", StringComparison.OrdinalIgnoreCase)))
+            {
+                string fileName = Path.GetFileName(localPath);
+                string newPath = Path.Combine(AppPaths.DefaultWallpapersFolder, fileName);
+                if (File.Exists(newPath))
+                {
+                    localPath = newPath;
+                }
+                else if (File.Exists(localPath))
+                {
+                    try
+                    {
+                        AppPaths.EnsureDirectoryExists(AppPaths.DefaultWallpapersFolder);
+                        File.Copy(localPath, newPath, true);
+                        localPath = newPath;
+                    }
+                    catch
+                    {
+                        localPath = string.Empty;
+                    }
+                }
+                else
+                {
+                    localPath = string.Empty;
+                }
+            }
+
             return new WallpaperHistoryItem
             {
                 Id = cacheItem.Id,
@@ -87,10 +118,10 @@ namespace BingWallTray.App.Services
                 Copyright = cacheItem.Copyright,
                 CopyrightLink = cacheItem.CopyrightLink,
                 RemoteUrl = cacheItem.Url,
-                LocalPath = cacheItem.LocalPath,
+                LocalPath = localPath,
                 Date = cacheItem.StartDate,
                 IsFavorite = cacheItem.IsFavorite,
-                DisplayPath = File.Exists(cacheItem.LocalPath) ? cacheItem.LocalPath : cacheItem.Url
+                DisplayPath = (!string.IsNullOrEmpty(localPath) && File.Exists(localPath)) ? localPath : cacheItem.Url
             };
         }
 
@@ -304,6 +335,13 @@ namespace BingWallTray.App.Services
 
             // Проверяем, скачан ли файл локально
             string targetFolder = _settingsService.CurrentSettings.DownloadFolder;
+            if (string.IsNullOrWhiteSpace(targetFolder) ||
+                targetFolder.Contains("OneDrive", StringComparison.OrdinalIgnoreCase) ||
+                targetFolder.Contains("Pictures", StringComparison.OrdinalIgnoreCase) ||
+                targetFolder.Contains("Изображения", StringComparison.OrdinalIgnoreCase))
+            {
+                targetFolder = AppPaths.DefaultWallpapersFolder;
+            }
             string titleTmp = string.IsNullOrWhiteSpace(image.Title) ? "bing-wallpaper" : image.Title.Trim();
             string sanitizedTitleTmp = Utils.FileNameSanitizer.Sanitize(titleTmp);
             string marketTmp = string.IsNullOrWhiteSpace(image.Market) ? "unknown" : image.Market;

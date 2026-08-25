@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Text;
+using BingWallTray.App.Utils;
 
 namespace BingWallTray.App.Services
 {
@@ -26,8 +27,7 @@ namespace BingWallTray.App.Services
         {
             try
             {
-                string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                LogFolder = Path.Combine(appData, "WallTray", "Logs");
+                LogFolder = AppPaths.LogFolder;
                 if (!Directory.Exists(LogFolder))
                 {
                     Directory.CreateDirectory(LogFolder);

@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using BingWallTray.App.Utils;
 
 namespace BingWallTray.App.Models
 {
@@ -41,11 +42,10 @@ namespace BingWallTray.App.Models
 
         public AppSettings()
         {
-            // Установка дефолтной папки скачивания: %UserProfile%\Pictures\BingWallTray
+            // Установка дефолтной папки скачивания: %LocalAppData%\WallTray\Wallpapers
             try
             {
-                string myPictures = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
-                DownloadFolder = Path.Combine(myPictures, "WallTray");
+                DownloadFolder = AppPaths.DefaultWallpapersFolder;
             }
             catch
             {

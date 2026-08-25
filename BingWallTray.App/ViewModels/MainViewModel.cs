@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using BingWallTray.App.Models;
 using BingWallTray.App.Services;
+using BingWallTray.App.Utils;
 
 namespace BingWallTray.App.ViewModels
 {
@@ -99,8 +100,6 @@ namespace BingWallTray.App.ViewModels
             {
                 return ActivePage switch
                 {
-                    "About" => "Другое",
-                    "Favorites" => "Избранное",
                     "ImageDetails" => "Детали обоев",
                     _ => "WallTray"
                 };
@@ -222,6 +221,20 @@ namespace BingWallTray.App.ViewModels
 
         public bool HasImages => TodayImages != null && TodayImages.Count > 0;
 
+        private bool _isFavoritesLoading = false;
+        public bool IsFavoritesLoading
+        {
+            get => _isFavoritesLoading;
+            set
+            {
+                if (SetProperty(ref _isFavoritesLoading, value))
+                {
+                    OnPropertyChanged(nameof(ShowFavoritesList));
+                    OnPropertyChanged(nameof(ShowFavoritesEmpty));
+                }
+            }
+        }
+
         public ObservableCollection<WallpaperHistoryItem> FavoritesCollection
         {
             get => _favoritesCollection;
@@ -231,12 +244,16 @@ namespace BingWallTray.App.ViewModels
                 {
                     OnPropertyChanged(nameof(HasFavorites));
                     OnPropertyChanged(nameof(IsFavoritesEmpty));
+                    OnPropertyChanged(nameof(ShowFavoritesList));
+                    OnPropertyChanged(nameof(ShowFavoritesEmpty));
                 }
             }
         }
 
         public bool HasFavorites => FavoritesCollection != null && FavoritesCollection.Count > 0;
         public bool IsFavoritesEmpty => !HasFavorites;
+        public bool ShowFavoritesList => !IsFavoritesLoading && HasFavorites;
+        public bool ShowFavoritesEmpty => !IsFavoritesLoading && IsFavoritesEmpty;
 
         public BingImage? SelectedImage
         {
@@ -905,7 +922,7 @@ namespace BingWallTray.App.ViewModels
 
         private void SaveSettings()
         {
-            _settingsService.SaveAsync(Settings).Wait();
+            _ = Task.Run(() => _settingsService.SaveAsync(Settings));
         }
 
         private bool _isLoadedOnce = false;
@@ -1157,7 +1174,7 @@ namespace BingWallTray.App.ViewModels
                     style = WallpaperStyle.Fill;
                 }
 
-                bool success = _wallpaperService.SetWallpaper(localPath, style);
+                bool success = await _wallpaperService.SetWallpaperAsync(localPath, style);
                 if (success)
                 {
                     string id = GetImageId(SelectedImage);
@@ -1293,20 +1310,57 @@ namespace BingWallTray.App.ViewModels
 
         public async Task LoadFavoritesPageAsync()
         {
-            var favs = await _historyService.GetFavoritesAsync();
+            if (FavoritesCollection == null || FavoritesCollection.Count == 0)
+            {
+                IsFavoritesLoading = true;
+            }
 
-            // ponytail: skip rebuilding the collection (and re-decoding every thumbnail) when
-            // the favorites list hasn't actually changed since the last time the tab was opened.
-            bool unchanged = FavoritesCollection.Count == favs.Count
-                && FavoritesCollection.Select(f => f.Id).SequenceEqual(favs.Select(f => f.Id));
-            if (unchanged) return;
+            try
+            {
+                var favs = await Task.Run(async () => await _historyService.GetFavoritesAsync());
 
-            FavoritesCollection = new ObservableCollection<WallpaperHistoryItem>(favs);
+                bool unchanged = FavoritesCollection != null
+                    && FavoritesCollection.Count == favs.Count
+                    && FavoritesCollection.Select(f => f.Id).SequenceEqual(favs.Select(f => f.Id));
+
+                if (!unchanged)
+                {
+                    FavoritesCollection = new ObservableCollection<WallpaperHistoryItem>(favs);
+                }
+            }
+            finally
+            {
+                IsFavoritesLoading = false;
+            }
         }
 
         private async Task OnApplyFavoriteAsync(WallpaperHistoryItem item)
         {
-            if (item == null || string.IsNullOrEmpty(item.LocalPath)) return;
+            if (item == null) return;
+
+            string localPath = item.LocalPath;
+            if (!string.IsNullOrEmpty(localPath) &&
+                (localPath.Contains(@"\OneDrive\", StringComparison.OrdinalIgnoreCase) ||
+                 localPath.Contains(@"\Pictures\", StringComparison.OrdinalIgnoreCase) ||
+                 localPath.Contains(@"\Изображения\", StringComparison.OrdinalIgnoreCase)))
+            {
+                string targetPath = Path.Combine(AppPaths.DefaultWallpapersFolder, Path.GetFileName(localPath));
+                if (File.Exists(targetPath))
+                {
+                    localPath = targetPath;
+                }
+                else if (File.Exists(localPath))
+                {
+                    try
+                    {
+                        AppPaths.EnsureDirectoryExists(AppPaths.DefaultWallpapersFolder);
+                        File.Copy(localPath, targetPath, true);
+                        localPath = targetPath;
+                    }
+                    catch { }
+                }
+                item.LocalPath = localPath;
+            }
 
             _appState.StatusMessage = "Установка обоев...";
             _appState.IsDownloading = true;
@@ -1315,7 +1369,7 @@ namespace BingWallTray.App.ViewModels
 
             try
             {
-                if (!File.Exists(item.LocalPath))
+                if (string.IsNullOrEmpty(item.LocalPath) || !File.Exists(item.LocalPath))
                 {
                     if (string.IsNullOrEmpty(item.RemoteUrl))
                     {
@@ -1329,8 +1383,8 @@ namespace BingWallTray.App.ViewModels
                         Url = item.RemoteUrl,
                         StartDate = item.Date
                     };
-                    string localPath = await _downloadService.DownloadImageAsync(tempBingImage, Settings.DownloadFolder);
-                    item.LocalPath = localPath;
+                    string downloadedPath = await _downloadService.DownloadImageAsync(tempBingImage, Settings.DownloadFolder);
+                    item.LocalPath = downloadedPath;
                     await _historyService.AddOrUpdateFavoriteAsync(item);
                 }
 
@@ -1341,7 +1395,7 @@ namespace BingWallTray.App.ViewModels
                     style = WallpaperStyle.Fill;
                 }
 
-                bool success = _wallpaperService.SetWallpaper(item.LocalPath, style);
+                bool success = await _wallpaperService.SetWallpaperAsync(item.LocalPath, style);
                 if (success)
                 {
                     Settings.LastAppliedImageId = item.Id;
@@ -1411,20 +1465,34 @@ namespace BingWallTray.App.ViewModels
 
         private void OnOpenFavoriteFolder(WallpaperHistoryItem item)
         {
-            if (item == null || string.IsNullOrEmpty(item.LocalPath)) return;
+            if (item == null) return;
 
             try
             {
-                if (File.Exists(item.LocalPath))
+                string path = item.LocalPath;
+                if (!string.IsNullOrEmpty(path) &&
+                    (path.Contains(@"\OneDrive\", StringComparison.OrdinalIgnoreCase) ||
+                     path.Contains(@"\Pictures\", StringComparison.OrdinalIgnoreCase) ||
+                     path.Contains(@"\Изображения\", StringComparison.OrdinalIgnoreCase)))
                 {
-                    string argument = $"/select,\"{item.LocalPath}\"";
+                    string redirected = Path.Combine(AppPaths.DefaultWallpapersFolder, Path.GetFileName(path));
+                    if (File.Exists(redirected))
+                    {
+                        path = redirected;
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(path) && File.Exists(path))
+                {
+                    string argument = $"/select,\"{path}\"";
                     System.Diagnostics.Process.Start("explorer.exe", argument);
                 }
                 else
                 {
-                    if (Directory.Exists(Settings.DownloadFolder))
+                    string targetFolder = Directory.Exists(Settings.DownloadFolder) ? Settings.DownloadFolder : AppPaths.DefaultWallpapersFolder;
+                    if (Directory.Exists(targetFolder))
                     {
-                        System.Diagnostics.Process.Start("explorer.exe", Settings.DownloadFolder);
+                        System.Diagnostics.Process.Start("explorer.exe", targetFolder);
                     }
                 }
             }
@@ -1470,8 +1538,7 @@ namespace BingWallTray.App.ViewModels
         {
             try
             {
-                string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                string logFolder = Path.Combine(appData, "WallTray", "Logs");
+                string logFolder = AppPaths.LogFolder;
                 if (Directory.Exists(logFolder))
                 {
                     var files = Directory.GetFiles(logFolder, "*.log");
@@ -1587,8 +1654,7 @@ namespace BingWallTray.App.ViewModels
         {
             try
             {
-                string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                string logFolder = Path.Combine(appData, "WallTray", "Logs");
+                string logFolder = AppPaths.LogFolder;
                 if (Directory.Exists(logFolder))
                 {
                     System.Diagnostics.Process.Start("explorer.exe", $"\"{logFolder}\"");

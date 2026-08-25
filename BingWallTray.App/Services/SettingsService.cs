@@ -31,12 +31,41 @@ namespace BingWallTray.App.Services
             _logger = logger;
             _dateTimeProvider = dateTimeProvider;
             
-            string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            _appDataFolder = Path.Combine(appData, "WallTray");
-            _settingsFilePath = Path.Combine(_appDataFolder, "settings.json");
+            _appDataFolder = AppPaths.AppDataFolder;
+            _settingsFilePath = AppPaths.SettingsFilePath;
 
             CurrentSettings = new AppSettings();
             UpdateLoggerSettings(CurrentSettings);
+        }
+
+        private void MigrateLegacyDataIfNeeded()
+        {
+            try
+            {
+                if (_appDataFolder != AppPaths.AppDataFolder)
+                {
+                    return;
+                }
+
+                string legacyDir = AppPaths.LegacyRoamingAppDataFolder;
+                if (Directory.Exists(legacyDir) && !File.Exists(_settingsFilePath))
+                {
+                    AppPaths.EnsureDirectoryExists(_appDataFolder);
+                    foreach (var file in Directory.GetFiles(legacyDir, "*.*"))
+                    {
+                        string dest = Path.Combine(_appDataFolder, Path.GetFileName(file));
+                        if (!File.Exists(dest))
+                        {
+                            File.Copy(file, dest, true);
+                        }
+                    }
+                    _logger.LogInfo("Выполнена миграция данных приложения из Roaming AppData в LocalAppData.");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning($"Ошибка при миграции старых данных из Roaming AppData: {ex.Message}");
+            }
         }
 
         private void UpdateLoggerSettings(AppSettings settings)
@@ -50,6 +79,8 @@ namespace BingWallTray.App.Services
 
         public async Task<AppSettings> LoadAsync()
         {
+            MigrateLegacyDataIfNeeded();
+
             if (!Directory.Exists(_appDataFolder))
             {
                 try
@@ -101,6 +132,40 @@ namespace BingWallTray.App.Services
                     if (settings == null)
                     {
                         throw new JsonException("Десериализация настроек вернула null.");
+                    }
+
+                    // Миграция папки скачивания обоев в %LocalAppData%\WallTray\Wallpapers
+                    if (string.IsNullOrWhiteSpace(settings.DownloadFolder) ||
+                        settings.DownloadFolder.Contains(@"\Pictures\WallTray", StringComparison.OrdinalIgnoreCase) ||
+                        settings.DownloadFolder.Contains(@"\Pictures\BingWallTray", StringComparison.OrdinalIgnoreCase) ||
+                        settings.DownloadFolder.Contains(@"\OneDrive\", StringComparison.OrdinalIgnoreCase))
+                    {
+                        string oldFolder = settings.DownloadFolder;
+                        settings.DownloadFolder = AppPaths.DefaultWallpapersFolder;
+                        AppPaths.EnsureDirectoryExists(AppPaths.DefaultWallpapersFolder);
+
+                        // Перемещаем файлы из старой папки Pictures в новую папку LocalAppData
+                        if (!string.IsNullOrEmpty(oldFolder) && Directory.Exists(oldFolder))
+                        {
+                            try
+                            {
+                                foreach (var file in Directory.GetFiles(oldFolder, "*.*"))
+                                {
+                                    string dest = Path.Combine(AppPaths.DefaultWallpapersFolder, Path.GetFileName(file));
+                                    if (!File.Exists(dest))
+                                    {
+                                        File.Copy(file, dest, true);
+                                    }
+                                }
+                                _logger.LogInfo($"Обои перенесены из старой папки '{oldFolder}' в '{AppPaths.DefaultWallpapersFolder}'.");
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogWarning($"Не удалось перенести обои из старой папки {oldFolder}: {ex.Message}");
+                            }
+                        }
+
+                        _ = SaveAsync(settings);
                     }
 
                     CurrentSettings = settings;

@@ -34,9 +34,8 @@ namespace BingWallTray.App.Services
             _logger = logger;
             _dateTimeProvider = dateTimeProvider;
 
-            string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            _appDataFolder = Path.Combine(appData, "WallTray");
-            _cacheFilePath = Path.Combine(_appDataFolder, "wallpaper_cache.json");
+            _appDataFolder = AppPaths.AppDataFolder;
+            _cacheFilePath = AppPaths.CacheFilePath;
         }
 
         private async Task EnsureLoadedAsync()
@@ -91,6 +90,7 @@ namespace BingWallTray.App.Services
                         _cache = items ?? new List<WallpaperCacheItem>();
                         _isLoaded = true;
                     }
+                    await MigrateLegacyLocalPathsAsync();
                     return;
                 }
                 catch (JsonException jsonEx)
@@ -122,6 +122,61 @@ namespace BingWallTray.App.Services
                     _logger.LogError($"Критическая ошибка чтения файла кэша {filePathToLoad}", ex);
                     throw;
                 }
+            }
+        }
+
+        private async Task MigrateLegacyLocalPathsAsync()
+        {
+            bool modified = false;
+            string targetFolder = AppPaths.DefaultWallpapersFolder;
+
+            lock (_lock)
+            {
+                foreach (var item in _cache)
+                {
+                    if (!string.IsNullOrEmpty(item.LocalPath) &&
+                        (item.LocalPath.Contains(@"\OneDrive\", StringComparison.OrdinalIgnoreCase) ||
+                         item.LocalPath.Contains(@"\Pictures\", StringComparison.OrdinalIgnoreCase) ||
+                         item.LocalPath.Contains(@"\Изображения\", StringComparison.OrdinalIgnoreCase) ||
+                         !item.LocalPath.StartsWith(targetFolder, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        string fileName = Path.GetFileName(item.LocalPath);
+                        string newPath = Path.Combine(targetFolder, fileName);
+
+                        if (File.Exists(newPath))
+                        {
+                            item.LocalPath = newPath;
+                            modified = true;
+                        }
+                        else if (File.Exists(item.LocalPath))
+                        {
+                            try
+                            {
+                                AppPaths.EnsureDirectoryExists(targetFolder);
+                                File.Copy(item.LocalPath, newPath, true);
+                                item.LocalPath = newPath;
+                                modified = true;
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogWarning($"Не удалось перенести файл из OneDrive {item.LocalPath}: {ex.Message}");
+                                item.LocalPath = string.Empty;
+                                modified = true;
+                            }
+                        }
+                        else
+                        {
+                            item.LocalPath = string.Empty;
+                            modified = true;
+                        }
+                    }
+                }
+            }
+
+            if (modified)
+            {
+                await SaveAsync();
+                _logger.LogInfo("Все пути к обоям в кэше переведены из OneDrive/Pictures в локальную папку AppData.");
             }
         }
 

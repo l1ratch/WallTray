@@ -14,7 +14,14 @@ namespace BingWallTray.App.Services
 
     public class DownloadService : IDownloadService
     {
-        private static readonly HttpClient _httpClient = new HttpClient();
+        private static readonly HttpClient _httpClient = new HttpClient(new SocketsHttpHandler
+        {
+            PooledConnectionLifetime = TimeSpan.FromMinutes(10),
+            ConnectTimeout = TimeSpan.FromSeconds(10)
+        })
+        {
+            Timeout = TimeSpan.FromSeconds(30)
+        };
         private readonly ILoggingService _logger;
 
         public DownloadService(ILoggingService logger)
@@ -34,7 +41,10 @@ namespace BingWallTray.App.Services
                 throw new ArgumentException("Ссылка на изображение пуста.", nameof(image));
             }
 
-            if (File.Exists(image.Url))
+            // Проверяем локальный путь (только если это не сетевой HTTP/HTTPS URL)
+            if (!image.Url.StartsWith("http://", StringComparison.OrdinalIgnoreCase) &&
+                !image.Url.StartsWith("https://", StringComparison.OrdinalIgnoreCase) &&
+                File.Exists(image.Url))
             {
                 if (!Directory.Exists(targetFolder))
                 {
@@ -96,13 +106,14 @@ namespace BingWallTray.App.Services
 
             try
             {
-                using (var response = await _httpClient.GetAsync(image.Url, HttpCompletionOption.ResponseHeadersRead))
+                using (var response = await _httpClient.GetAsync(image.Url, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false))
                 {
                     response.EnsureSuccessStatusCode();
 
-                    using (var fs = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.None))
+                    using (var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
+                    using (var fs = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 81920, useAsync: true))
                     {
-                        await response.Content.CopyToAsync(fs);
+                        await stream.CopyToAsync(fs).ConfigureAwait(false);
                     }
                 }
 

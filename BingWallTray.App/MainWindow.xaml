@@ -1,15 +1,18 @@
-﻿<Window x:Class="BingWallTray.App.MainWindow"
+<Window x:Class="BingWallTray.App.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:BingWallTray.App"
+        xmlns:utils="clr-namespace:BingWallTray.App.Utils"
         mc:Ignorable="d"
         Title="WallTray" Height="680" Width="460" Icon="pack://application:,,,/Assets/logo.png"
         WindowStyle="None" AllowsTransparency="True" Background="Transparent"
         ShowInTaskbar="False" Topmost="True" Activated="Window_Activated">
     
     <Window.Resources>
+        <!-- Конвертеры -->
+        <utils:PathToThumbnailConverter x:Key="PathToThumbnailConverter"/>
         <!-- Векторные иконки (Geometry) -->
         <Geometry x:Key="IconBack">M20,11H7.83L13.42,5.41L12,4L4,12L12,20L13.41,18.59L7.83,13H20V11Z</Geometry>
         <Geometry x:Key="IconSettings">M19.14,12.94C19.18,12.63 19.2,12.32 19.2,12C19.2,11.68 19.18,11.37 19.14,11.06L21.14,9.5C21.32,9.36 21.37,9.1 21.26,8.9L19.36,5.6C19.24,5.4 19,5.32 18.78,5.41L16.42,6.36C15.93,5.97 15.39,5.66 14.8,5.42L14.44,2.9C14.4,2.68 14.22,2.5 14,2.5H10.18C9.96,2.5 9.78,2.68 9.74,2.9L9.38,5.42C8.79,5.66 8.25,5.97 7.76,6.36L5.4,5.41C5.18,5.32 4.94,5.4 4.82,5.6L2.92,8.9C2.81,9.1 2.86,9.36 3.04,9.5L5.04,11.06C5,11.37 4.98,11.68 4.98,12C4.98,12.32 5,12.63 5.04,12.94L3.04,14.5C2.86,14.64 2.81,14.9 2.92,15.1L4.82,18.4C4.94,18.6 5.18,18.68 5.4,18.59L7.76,17.64C8.25,18.03 8.79,18.34 9.38,18.58L9.74,21.1C9.78,21.32 9.96,21.5 10.18,21.5H14C14.22,21.5 14.4,21.32 14.44,21.1L14.8,18.58C15.39,18.34 15.93,18.03 16.42,17.64L18.78,18.59C19,18.68 19.24,18.6 19.36,18.4L21.26,15.1C21.37,14.9 21.32,14.64 21.14,14.5L19.14,12.94ZM12,15.6C10,15.6 8.4,14 8.4,12C8.4,10 10,8.4 12,8.4C14,8.4 15.6,10 15.6,12C15.6,14 14,15.6 12,15.6Z</Geometry>
@@ -19,9 +22,45 @@
         <Geometry x:Key="IconStar">M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z</Geometry>
         <Geometry x:Key="IconGithub">M12,2A10,10 0 0,0 2,12C2,16.42 4.87,20.17 8.84,21.5C9.34,21.58 9.5,21.27 9.5,21C9.5,20.77 9.5,20.14 9.5,19.31C6.73,19.91 6.14,17.97 6.14,17.97C5.68,16.81 5.03,16.5 5.03,16.5C4.12,15.88 5.1,15.9 5.1,15.9C6.1,15.97 6.63,16.93 6.63,16.93C7.5,18.45 8.97,18 9.54,17.76C9.63,17.11 9.89,16.67 10.17,16.42C7.95,16.17 5.62,15.31 5.62,11.5C5.62,10.39 6,9.5 6.65,8.79C6.55,8.54 6.2,7.5 6.75,6.15C6.75,6.15 7.59,5.88 9.5,7.17C10.29,6.95 11.15,6.84 12,6.84C12.85,6.84 13.71,6.95 14.5,7.17C16.41,5.88 17.25,6.15 17.25,6.15C17.8,7.5 17.45,8.54 17.35,8.79C18,9.5 18.38,10.39 18.38,11.5C18.38,15.32 16.04,16.16 13.81,16.41C14.17,16.72 14.5,17.33 14.5,18.26C14.5,19.6 14.5,20.68 14.5,21C14.5,21.27 14.66,21.59 15.17,21.5C19.14,20.16 22,16.42 22,12A10,10 0 0,0 12,2Z</Geometry>
         <Geometry x:Key="IconInfo">M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z</Geometry>
-        <Geometry x:Key="IconSun">M12,7A5,5 0 1,0 12,17A5,5 0 0,0 12,7M12,2V5M12,19V22M2,12H5M19,12H22M4.93,4.93L7.05,7.05M16.95,16.95L19.07,19.07M19.07,4.93L16.95,7.05M7.05,16.95L4.93,19.07</Geometry>
+        <Geometry x:Key="IconSun">M12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7M11,1V4H13V1H11M11,20V23H13V20H11M3.51,4.93L5.63,7.05L7.05,5.63L4.93,3.51L3.51,4.93M16.95,18.36L19.07,20.49L20.49,19.07L18.36,16.95L16.95,18.36M1,11V13H4V11H1M20,11V13H23V11H20M4.93,20.49L7.05,18.36L5.63,16.95L3.51,19.07L4.93,20.49M18.36,5.63L20.49,3.51L19.07,4.93L16.95,7.05L18.36,5.63Z</Geometry>
         <Geometry x:Key="IconWave">M2,13C4.5,10.5 7.5,10.5 10,13C12.5,15.5 15.5,15.5 18,13C19.3,11.7 20.7,11.2 22,11.5V15C20.7,14.7 19.3,15.2 18,16.5C15.5,19 12.5,19 10,16.5C7.5,14 4.5,14 2,16.5V13Z</Geometry>
-        <Geometry x:Key="IconMore">M4,10A2,2 0 1,0 4,14A2,2 0 0,0 4,10M12,10A2,2 0 1,0 12,14A2,2 0 0,0 12,10M20,10A2,2 0 1,0 20,14A2,2 0 0,0 20,10</Geometry>
+        <Geometry x:Key="IconMore">M5,10A2,2 0 1,0 5,14A2,2 0 0,0 5,10M12,10A2,2 0 1,0 12,14A2,2 0 0,0 12,10M19,10A2,2 0 1,0 19,14A2,2 0 0,0 19,10Z</Geometry>
+        <Geometry x:Key="IconChevronRight">M8.59,16.59L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.59Z</Geometry>
+        <Geometry x:Key="IconRefresh">M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z</Geometry>
+        <Geometry x:Key="IconDownload">M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z</Geometry>
+
+        <!-- Стиль для интерактивной карточки перехода в параметры -->
+        <Style x:Key="SettingsCardButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#1c1c1c"/>
+            <Setter Property="BorderBrush" Value="#2b2b2b"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="Padding" Value="14,12"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="12" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#252525"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#3d3d3d"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#171717"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#0078d4"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
 
         <!-- Стиль для горизонтальных плиток списка -->
         <Style x:Key="ThumbnailItemStyle" TargetType="ListBoxItem">
@@ -71,68 +110,91 @@
             </Setter>
         </Style>
 
-        <!-- Кнопка нижнего докера навигации: плоская, без коробок, с активным индикатором -->
+        <!-- Кнопка нижнего докера навигации -->
         <Style x:Key="DockNavButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#8a8a8a"/>
+            <Setter Property="Foreground" Value="#787878"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Height" Value="52"/>
-            <Setter Property="Padding" Value="4,0"/>
+            <Setter Property="Margin" Value="2,0"/>
+            <Setter Property="Padding" Value="0"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="SnapsToDevicePixels" Value="True"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Grid Background="Transparent">
-                            <!-- Подсветка при наведении/активности -->
-                            <Border x:Name="hoverPill" Background="Transparent" CornerRadius="10" Margin="4,6"/>
-
-                            <!-- Иконка + подпись -->
-                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                            <!-- Фоновый pill с легким скруглением -->
+                            <Border x:Name="pill"
+                                    Background="Transparent"
+                                    BorderBrush="Transparent"
+                                    BorderThickness="1"
+                                    CornerRadius="8"
+                                    Margin="1,0">
                                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </StackPanel>
-
-                            <!-- Активный индикатор (тонкая линия сверху) -->
-                            <Border x:Name="activeIndicator" VerticalAlignment="Top"
-                                    Background="#4ea5f5" CornerRadius="2" Height="3" Width="28"
-                                    HorizontalAlignment="Center" Margin="0,0,0,0" Opacity="0"/>
+                            </Border>
                         </Grid>
                         <ControlTemplate.Triggers>
+                            <!-- Hover неактивной кнопки -->
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="hoverPill" Property="Background" Value="#242424"/>
-                                <Setter Property="Foreground" Value="#e6e6e6"/>
+                                <Setter TargetName="pill" Property="Background" Value="#1f1f1f"/>
+                                <Setter TargetName="pill" Property="BorderBrush" Value="#2f2f2f"/>
+                                <Setter Property="Foreground" Value="#d4d4d4"/>
                             </Trigger>
-                            <Trigger Property="Tag" Value="True">
-                                <Setter TargetName="activeIndicator" Property="Opacity" Value="1"/>
-                                <Setter Property="Foreground" Value="#4ea5f5"/>
-                            </Trigger>
+                            <!-- Активная кнопка страницы (Tag == True) -->
+                            <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="True">
+                                <Setter TargetName="pill" Property="Background" Value="#1f1f1f"/>
+                                <Setter TargetName="pill" Property="BorderBrush" Value="#2f2f2f"/>
+                                <Setter Property="Foreground" Value="#52a9ff"/>
+                            </DataTrigger>
+                            <!-- Hover активной кнопки -->
+                            <MultiDataTrigger>
+                                <MultiDataTrigger.Conditions>
+                                    <Condition Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="True"/>
+                                    <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True"/>
+                                </MultiDataTrigger.Conditions>
+                                <Setter TargetName="pill" Property="Background" Value="#262626"/>
+                                <Setter TargetName="pill" Property="BorderBrush" Value="#3a3a3a"/>
+                                <Setter Property="Foreground" Value="#72c2ff"/>
+                            </MultiDataTrigger>
+                            <!-- Нажатие (Pressed) -->
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="hoverPill" Property="Background" Value="#1a1a1a"/>
+                                <Setter TargetName="pill" Property="Background" Value="#181818"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
-
+        
         <Style x:Key="RoundIconButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="#2d2d2d"/>
-            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Background" Value="#252525"/>
+            <Setter Property="BorderBrush" Value="#383838"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="#b0b0b0"/>
             <Setter Property="Width" Value="32"/>
             <Setter Property="Height" Value="32"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="roundButton" Background="{TemplateBinding Background}" CornerRadius="16">
+                        <Border x:Name="roundButton" 
+                                Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                CornerRadius="16">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="roundButton" Property="Background" Value="#414141"/>
+                                <Setter TargetName="roundButton" Property="Background" Value="#383838"/>
+                                <Setter TargetName="roundButton" Property="BorderBrush" Value="#505050"/>
+                                <Setter Property="Foreground" Value="#ffffff"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="roundButton" Property="Background" Value="#222222"/>
+                                <Setter TargetName="roundButton" Property="Background" Value="#1c1c1c"/>
+                                <Setter TargetName="roundButton" Property="BorderBrush" Value="#282828"/>
+                                <Setter Property="Foreground" Value="#d0d0d0"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -172,6 +234,7 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
 
         <!-- Стиль для первичных (акцентных) кнопок -->
         <Style x:Key="AccentButtonStyle" TargetType="Button" BasedOn="{StaticResource FluentButtonStyle}">
@@ -549,15 +612,15 @@
             <DropShadowEffect BlurRadius="15" Color="#000000" Opacity="0.5" ShadowDepth="3" Direction="270"/>
         </Border.Effect>
 
-            <Grid Margin="14">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/> <!-- Шапка -->
-                    <RowDefinition Height="*"/>    <!-- Содержимое страниц -->
-                    <RowDefinition Height="Auto"/> <!-- Нижняя навигация -->
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/> <!-- Шапка -->
+                <RowDefinition Height="*"/>    <!-- Содержимое страниц -->
+                <RowDefinition Height="Auto"/> <!-- Нижняя навигация -->
             </Grid.RowDefinitions>
 
             <!-- 1. ШАПКА -->
-            <Grid Grid.Row="0" Margin="0,0,0,12">
+            <Grid Grid.Row="0" Margin="14,14,14,10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/> <!-- Кнопка Назад -->
                     <ColumnDefinition Width="*"/>    <!-- Заголовок -->
@@ -570,124 +633,113 @@
                     <Path Data="{StaticResource IconBack}" Fill="#ffffff" Width="13" Height="13" Stretch="Uniform"/>
                 </Button>
                 
-                <!-- Заголовок страницы -->
+                <!-- Заголовок страницы (везде WallTray, без версии) -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Image Source="pack://application:,,,/Assets/logo.png" Width="26" Height="26" Margin="0,0,8,0"
+                    <Image Source="pack://application:,,,/Assets/logo.png" Width="24" Height="24" Margin="0,0,8,0"
+                           Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality"
                            Visibility="{Binding ShowLogo, Converter={StaticResource BoolToVisibility}}"/>
-                    <TextBlock Text="{Binding PageTitle}" Foreground="#ffffff" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                    <TextBlock Text="{Binding AppVersion, StringFormat=' v{0}'}" Foreground="#666666" FontSize="10" VerticalAlignment="Bottom" Margin="4,0,0,2"
-                               Visibility="{Binding ShowLogo, Converter={StaticResource BoolToVisibility}}"/>
+                    <TextBlock Text="{Binding PageTitle}" Foreground="#ffffff" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center"/>
                 </StackPanel>
 
-                <!-- Бейдж статуса с подробностями по наведению -->
-                <Grid Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right"
-                      MouseEnter="StatusBadge_MouseEnter" MouseLeave="StatusBadge_MouseLeave">
-                    <Button x:Name="StatusBadge" Background="#232323" BorderThickness="0" 
-                            Padding="9,0" Height="30" Width="Auto" Cursor="Hand"
-                            Command="{Binding ToggleStatusPopupCommand}">
-                        <Button.Template>
-                            <ControlTemplate TargetType="Button">
-                                <Border x:Name="badgeBorder" Background="{TemplateBinding Background}" 
-                                        BorderBrush="#333333" BorderThickness="1"
-                                        CornerRadius="15" Padding="{TemplateBinding Padding}">
-                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                        <!-- Цветной статус-индикатор (точка) -->
-                                        <Grid Width="16" Height="16" Margin="0,0,7,0" VerticalAlignment="Center">
-                                            <Ellipse Width="8" Height="8" Fill="{Binding StatusBadgeForeground}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                                            <!-- Крутящееся кольцо в состоянии занятости -->
-                                            <Ellipse x:Name="BusyRing" Width="15" Height="15" StrokeThickness="1.6" Opacity="0"
-                                                     Stroke="{Binding StatusBadgeForeground}" StrokeDashArray="3 2"
-                                                     RenderTransformOrigin="0.5,0.5">
-                                                <Ellipse.RenderTransform>
-                                                    <RotateTransform x:Name="StatusIconRotate" Angle="0"/>
-                                                </Ellipse.RenderTransform>
-                                            </Ellipse>
-                                        </Grid>
-                                        <TextBlock Text="{Binding StatusBadgeText}" 
-                                                   Foreground="#d8d8d8" FontSize="11" FontWeight="Medium" 
-                                                   VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                </Border>
-                                <ControlTemplate.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter TargetName="badgeBorder" Property="Background" Value="#2e2e2e"/>
-                                        <Setter TargetName="badgeBorder" Property="BorderBrush" Value="#444444"/>
-                                    </Trigger>
-                                    <Trigger Property="IsPressed" Value="True">
-                                        <Setter TargetName="badgeBorder" Property="Background" Value="#1c1c1c"/>
-                                    </Trigger>
-                                    <DataTrigger Binding="{Binding IsStatusBusy}" Value="True">
-                                        <Setter TargetName="BusyRing" Property="Opacity" Value="1"/>
-                                    </DataTrigger>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </Button.Template>
-                    </Button>
-                </Grid>
+                <!-- Бейдж статуса (открывается при наведении, не кликается) -->
+                <Border x:Name="StatusBadge" Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right"
+                        Background="#202020" BorderBrush="#303030" BorderThickness="1"
+                        CornerRadius="13" Padding="8,4" Cursor="Arrow"
+                        MouseEnter="StatusBadge_MouseEnter" MouseLeave="StatusBadge_MouseLeave">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#292929"/>
+                                    <Setter Property="BorderBrush" Value="#404040"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <!-- Цветной статус-индикатор (точка) -->
+                        <Grid Width="14" Height="14" Margin="0,0,6,0" VerticalAlignment="Center">
+                            <Ellipse Width="7" Height="7" Fill="{Binding StatusBadgeForeground}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                            <!-- Крутящееся кольцо в состоянии занятости -->
+                            <Ellipse x:Name="BusyRing" Width="14" Height="14" StrokeThickness="1.5" Opacity="0"
+                                     Stroke="{Binding StatusBadgeForeground}" StrokeDashArray="3 2"
+                                     RenderTransformOrigin="0.5,0.5">
+                                <Ellipse.RenderTransform>
+                                    <RotateTransform x:Name="StatusIconRotate" Angle="0"/>
+                                </Ellipse.RenderTransform>
+                            </Ellipse>
+                        </Grid>
+                        <TextBlock Text="{Binding StatusBadgeText}" 
+                                   Foreground="#d0d0d0" FontSize="11" FontWeight="Medium" 
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
             </Grid>
 
-            <!-- Встроенная панель статуса: не выходит за границы tray window -->
-            <Border x:Name="StatusPanel" Grid.Row="0" Grid.RowSpan="2" Panel.ZIndex="10" Width="286" HorizontalAlignment="Right" VerticalAlignment="Top"
-                    Margin="0,44,0,0" Background="#1e1e1e" BorderBrush="#363636" BorderThickness="1" CornerRadius="14" Padding="16"
+            <!-- Встроенная панель статуса: полупрозрачная матовая карточка по наведению -->
+            <Border x:Name="StatusPanel" Grid.Row="0" Grid.RowSpan="2" Panel.ZIndex="10" Width="268" HorizontalAlignment="Right" VerticalAlignment="Top"
+                    Margin="0,46,14,0" Background="#ea1c1c1c" BorderBrush="#383838" BorderThickness="1" CornerRadius="12" Padding="12,10"
                     Visibility="Collapsed" Opacity="0" RenderTransformOrigin="0.9,0"
                     MouseEnter="StatusPopup_MouseEnter" MouseLeave="StatusPopup_MouseLeave">
                 <Border.Effect>
-                    <DropShadowEffect Color="#000000" Direction="270" ShadowDepth="4" BlurRadius="20" Opacity="0.5"/>
+                    <DropShadowEffect Color="#000000" Direction="270" ShadowDepth="4" BlurRadius="22" Opacity="0.55"/>
                 </Border.Effect>
                 <Border.RenderTransform>
                     <TransformGroup>
                         <ScaleTransform ScaleX="0.94" ScaleY="0.94"/>
-                        <TranslateTransform Y="-10"/>
+                        <TranslateTransform Y="-8"/>
                     </TransformGroup>
                 </Border.RenderTransform>
                 <StackPanel>
-                    <!-- Заголовок: крупный статус-заголовок с цветной точкой -->
-                    <Grid Margin="0,0,0,14">
+                    <!-- Верхняя строка: точка статуса, заголовок и бейдж загрузки -->
+                    <Grid Margin="0,0,0,6">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <Border Width="34" Height="34" CornerRadius="17" Margin="0,0,12,0" Background="#262626">
-                            <Ellipse Width="12" Height="12" Fill="{Binding StatusBadgeForeground}"/>
+                        
+                        <Ellipse Grid.Column="0" Width="8" Height="8" Fill="{Binding StatusBadgeForeground}" VerticalAlignment="Center" Margin="2,0,8,0"/>
+                        
+                        <TextBlock Grid.Column="1" Text="{Binding StatusHeadline}" Foreground="#ffffff" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        
+                        <!-- Бейдж загрузки если активна -->
+                        <Border Grid.Column="2" Background="#1c3d5a" BorderBrush="#2b5f8c" BorderThickness="1" CornerRadius="6" Padding="6,2" VerticalAlignment="Center"
+                                Visibility="{Binding IsDownloading, Converter={StaticResource BoolToVisibility}}">
+                            <StackPanel Orientation="Horizontal">
+                                <Ellipse Width="5" Height="5" Fill="#52a9ff" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                <TextBlock Text="Загрузка" Foreground="#52a9ff" FontSize="9" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                            </StackPanel>
                         </Border>
-                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Text="{Binding StatusHeadline}" Foreground="#ffffff" FontSize="14" FontWeight="SemiBold"/>
-                            <TextBlock Text="{Binding StatusMessageText}" Foreground="#9a9a9a" FontSize="11" TextWrapping="Wrap" Margin="0,2,0,0"/>
-                        </StackPanel>
                     </Grid>
 
-                    <!-- Строка: последняя проверка -->
-                    <Border Background="#262626" CornerRadius="10" Padding="12,10" Margin="0,0,0,8">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="Последняя проверка" Foreground="#8c8c8c" FontSize="11" VerticalAlignment="Center"/>
-                            <TextBlock Grid.Column="1" Text="{Binding ShortLastCheckTime}" Foreground="#f0f0f0" FontSize="12" HorizontalAlignment="Right" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                        </Grid>
-                    </Border>
+                    <!-- Описание статуса (компактное) -->
+                    <TextBlock Text="{Binding StatusMessageText}" Foreground="#9e9e9e" FontSize="10" TextWrapping="Wrap" Margin="0,0,0,8"/>
 
-                    <!-- Строка: кэш обоев -->
-                    <Border Background="#262626" CornerRadius="10" Padding="12,10">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <StackPanel VerticalAlignment="Center">
-                                <TextBlock Text="Кэш обоев" Foreground="#8c8c8c" FontSize="11"/>
-                                <TextBlock Text="{Binding CacheSizeString}" Foreground="#ffffff" FontSize="13" FontWeight="SemiBold" Margin="0,2,0,0"/>
-                            </StackPanel>
-                            <Border Grid.Column="1" Background="#173247" CornerRadius="8" Padding="9,5" VerticalAlignment="Center"
-                                    Visibility="{Binding IsDownloading, Converter={StaticResource BoolToVisibility}}">
-                                <StackPanel Orientation="Horizontal">
-                                    <Ellipse Width="6" Height="6" Fill="#4ea5f5" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                                    <TextBlock Text="Загрузка" Foreground="#7cc0f7" FontSize="10" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Border>
-                        </Grid>
-                    </Border>
+                    <Rectangle Fill="#282828" Height="1" Margin="0,0,0,8"/>
+
+                    <!-- Компактная плашка с метриками: проверка и кэш -->
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Проверка -->
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Проверка" Foreground="#707070" FontSize="9" FontWeight="Medium"/>
+                            <TextBlock Text="{Binding ShortLastCheckTime}" Foreground="#dcdcdc" FontSize="11" FontWeight="SemiBold" Margin="0,1,0,0"/>
+                        </StackPanel>
+
+                        <Rectangle Grid.Column="1" Fill="#2a2a2a" Width="1" Margin="8,2"/>
+
+                        <!-- Кэш -->
+                        <StackPanel Grid.Column="2" HorizontalAlignment="Right">
+                            <TextBlock Text="Кэш обоев" Foreground="#707070" FontSize="9" FontWeight="Medium" HorizontalAlignment="Right"/>
+                            <TextBlock Text="{Binding CacheSizeString}" Foreground="#dcdcdc" FontSize="11" FontWeight="SemiBold" Margin="0,1,0,0" HorizontalAlignment="Right"/>
+                        </StackPanel>
+                    </Grid>
                 </StackPanel>
             </Border>
 
@@ -702,21 +754,20 @@
                 <!-- ВКЛАДКА 0: ГАЛЕРЕЯ (СЕТКА ОБОЕВ) -->
                 <!-- ВКЛАДКА 0: ГАЛЕРЕЯ (СЕТКА ОБОЕВ) -->
                 <TabItem>
-                    <Grid>
+                    <Grid Margin="10,0,10,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
 
-
                         <!-- Сетка из плиток обоев с поддержкой бесконечного скролла natively -->
-                        <ListBox x:Name="GalleryListBox" Grid.Row="0" Grid.RowSpan="2" ItemsSource="{Binding DisplayedImages}" Background="Transparent" BorderThickness="0" Padding="0" Margin="0,0,6,0"
+                        <ListBox x:Name="GalleryListBox" Grid.Row="0" Grid.RowSpan="2" ItemsSource="{Binding DisplayedImages}" Background="Transparent" BorderThickness="0" Padding="0" Margin="0"
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Auto"
                                  ScrollViewer.ScrollChanged="GalleryScrollViewer_ScrollChanged">
                             <ListBox.Template>
                                 <ControlTemplate TargetType="ListBox">
                                     <ScrollViewer Focusable="False" Style="{StaticResource SettingsScrollViewerStyle}">
-                                        <ItemsPresenter x:Name="Presenter" Margin="0,0,0,0"/>
+                                        <ItemsPresenter x:Name="Presenter" Margin="0"/>
                                     </ScrollViewer>
                                 </ControlTemplate>
                             </ListBox.Template>
@@ -729,7 +780,7 @@
                                 <Style TargetType="ListBoxItem">
                                     <Setter Property="Background" Value="Transparent"/>
                                     <Setter Property="BorderThickness" Value="0"/>
-                                    <Setter Property="Padding" Value="4"/>
+                                    <Setter Property="Padding" Value="0"/>
                                     <Setter Property="Margin" Value="0"/>
                                     <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
                                     <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
@@ -757,21 +808,21 @@
                                                 <Style.Triggers>
                                                     <Trigger Property="IsMouseOver" Value="True">
                                                         <Trigger.EnterActions>
-                                                             <BeginStoryboard>
-                                                                 <Storyboard>
-                                                                     <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" To="1.04" Duration="0:0:0.15"/>
-                                                                     <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" To="1.04" Duration="0:0:0.15"/>
-                                                                 </Storyboard>
-                                                             </BeginStoryboard>
-                                                         </Trigger.EnterActions>
-                                                         <Trigger.ExitActions>
-                                                             <BeginStoryboard>
-                                                                 <Storyboard>
-                                                                     <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" To="1.0" Duration="0:0:0.15"/>
-                                                                     <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" To="1.0" Duration="0:0:0.15"/>
-                                                                 </Storyboard>
-                                                             </BeginStoryboard>
-                                                         </Trigger.ExitActions>
+                                                            <BeginStoryboard>
+                                                                <Storyboard>
+                                                                    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" To="1.04" Duration="0:0:0.15"/>
+                                                                    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" To="1.04" Duration="0:0:0.15"/>
+                                                                </Storyboard>
+                                                            </BeginStoryboard>
+                                                        </Trigger.EnterActions>
+                                                        <Trigger.ExitActions>
+                                                            <BeginStoryboard>
+                                                                <Storyboard>
+                                                                    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" To="1.0" Duration="0:0:0.15"/>
+                                                                    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" To="1.0" Duration="0:0:0.15"/>
+                                                                </Storyboard>
+                                                            </BeginStoryboard>
+                                                        </Trigger.ExitActions>
                                                         <Setter Property="BorderBrush" Value="#0078d4"/>
                                                     </Trigger>
                                                 </Style.Triggers>
@@ -790,8 +841,8 @@
                                             <Border Background="#2e7d32" CornerRadius="0,0,6,0" HorizontalAlignment="Left" VerticalAlignment="Top" Padding="6,4"
                                                     Visibility="{Binding IsApplied, Converter={StaticResource BoolToVisibility}}">
                                                 <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="✓" Foreground="#ffffff" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/>
-                                                    <TextBlock Text=" АКТИВНО" Foreground="#ffffff" FontSize="8" FontWeight="Bold" VerticalAlignment="Center" Margin="2,0,0,0"/>
+                                                    <Path Data="M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z" Fill="#ffffff" Width="10" Height="10" Stretch="Uniform" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="АКТИВНО" Foreground="#ffffff" FontSize="8" FontWeight="Bold" VerticalAlignment="Center" Margin="4,0,0,0"/>
                                                 </StackPanel>
                                             </Border>
 
@@ -861,225 +912,266 @@
                     </Grid>
                 </TabItem>
 
-                <!-- СТАРЫЙ ДИЗАЙН ГАЛЕРЕИ (ОТКЛЮЧЕН)
+                <!-- ВКЛАДКА 1: О ПРОГРАММЕ И НАСТРОЙКИ (ДРУГОЕ) -->
                 <TabItem>
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="330"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
+                    <Grid Margin="14,0,14,0">
+                        <ScrollViewer Style="{StaticResource SettingsScrollViewerStyle}" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                            <StackPanel Margin="0,4,4,12">
+                                <!-- 1. БЛОК "О ПРОГРАММЕ" (HERO CARD) -->
+                                <Border Background="#1c1c1c" BorderBrush="#2b2b2b" BorderThickness="1" CornerRadius="12" Padding="16,20" Margin="0,0,0,12">
+                                    <StackPanel HorizontalAlignment="Center">
+                                        <!-- Логотип приложения -->
+                                        <Image Source="pack://application:,,,/Assets/logo.png" Width="64" Height="64" 
+                                               Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality" SnapsToDevicePixels="True"
+                                               HorizontalAlignment="Center" Margin="0,0,0,10"/>
 
-                        <Border Grid.Row="0" Background="#121212" CornerRadius="8" ClipToBounds="True" BorderBrush="#2d2d2d" BorderThickness="1">
-                            <Grid>
-                                <Image Source="{Binding SelectedImage.PreviewUrl}" Stretch="UniformToFill" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                <Border VerticalAlignment="Bottom" Height="90" CornerRadius="0,0,8,8">
-                                    <Border.Background>
-                                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                            <GradientStop Color="#00000000" Offset="0.0"/>
-                                            <GradientStop Color="#e6000000" Offset="1.0"/>
-                                        </LinearGradientBrush>
-                                    </Border.Background>
-                                </Border>
-                                <StackPanel VerticalAlignment="Bottom" Margin="14" IsHitTestVisible="False">
-                                    <Border Background="#0078d4" CornerRadius="4" Padding="6,2" HorizontalAlignment="Left" Margin="0,0,0,6"
-                                            Visibility="{Binding IsSelectedImageApplied, Converter={StaticResource BoolToVisibility}}">
-                                        <TextBlock Text="УСТАНОВЛЕНО" Foreground="#ffffff" FontSize="9" FontWeight="Bold"/>
-                                    </Border>
-                                    <TextBlock Text="{Binding SelectedImage.Title}" Foreground="#ffffff" FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap"/>
-                                    <TextBlock Text="{Binding SelectedImage.Copyright}" Foreground="#e0e0e0" FontSize="10" TextWrapping="Wrap" Margin="0,4,0,0"/>
-                                </StackPanel>
-                            </Grid>
-                        </Border>
-
-                        <Grid Grid.Row="1" Margin="0,10,0,12">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-
-                            <Button Grid.Column="0" Command="{Binding SetWallpaperCommand}" Content="Установить обоями" 
-                                    Style="{StaticResource AccentButtonStyle}" Height="36" FontSize="12"/>
-
-                            <Button Grid.Column="1" Command="{Binding ToggleFavoriteCommand}" Width="44" Height="36" Margin="8,0,0,0" Cursor="Hand" ToolTip="В избранное">
-                                <Button.Template>
-                                    <ControlTemplate TargetType="Button">
-                                        <Border x:Name="bg" CornerRadius="6" Background="#2d2d2d" BorderThickness="0">
-                                            <TextBlock x:Name="starIcon" Text="★" FontSize="18" Foreground="#ffffff" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        </Border>
-                                        <ControlTemplate.Triggers>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter TargetName="bg" Property="Background" Value="#3d3d3d"/>
-                                            </Trigger>
-                                            <DataTrigger Binding="{Binding IsSelectedImageFavorite}" Value="True">
-                                                <Setter TargetName="starIcon" Property="Foreground" Value="#ffd700"/>
-                                            </DataTrigger>
-                                        </ControlTemplate.Triggers>
-                                    </ControlTemplate>
-                                </Button.Template>
-                            </Button>
-                        </Grid>
-
-                        <Grid Grid.Row="2" Margin="0,0,0,4">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="90"/>
-                            </Grid.RowDefinitions>
-                            
-                            <TextBlock Grid.Row="0" Text="Ежедневная подборка" Foreground="#a0a0a0" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,6"/>
-                            
-                            <ListBox Grid.Row="1" ItemsSource="{Binding TodayImages}" SelectedItem="{Binding SelectedImage}"
-                                     ItemContainerStyle="{StaticResource ThumbnailItemStyle}" Background="Transparent" BorderThickness="0" Padding="0"
-                                     ScrollViewer.HorizontalScrollBarVisibility="Hidden" ScrollViewer.VerticalScrollBarVisibility="Disabled"
-                                     PreviewMouseWheel="ListBox_PreviewMouseWheel">
-                                <ListBox.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <StackPanel Orientation="Horizontal"/>
-                                    </ItemsPanelTemplate>
-                                </ListBox.ItemsPanel>
-                                <ListBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <Grid>
-                                            <Border Width="120" Height="75" CornerRadius="6" ClipToBounds="True" Background="#121212" BorderBrush="#2d2d2d" BorderThickness="1">
-                                                <Image Source="{Binding ThumbnailUrl}" Stretch="UniformToFill"/>
+                                        <!-- Название и бейдж версии -->
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                            <TextBlock Text="WallTray" Foreground="#ffffff" FontSize="20" FontWeight="Bold" VerticalAlignment="Center"/>
+                                            <Border Background="#252525" BorderBrush="#383838" BorderThickness="1" CornerRadius="6" Padding="6,2" Margin="8,0,0,0" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding AppVersion, StringFormat='v{0}'}" Foreground="#52a9ff" FontSize="11" FontWeight="SemiBold"/>
                                             </Border>
-                                            <Border Background="#0078d4" CornerRadius="0,4,0,4" Width="18" Height="18" HorizontalAlignment="Right" VerticalAlignment="Top"
-                                                    Visibility="{Binding IsApplied, Converter={StaticResource BoolToVisibility}}">
-                                                <TextBlock Text="✓" Foreground="#ffffff" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                            </Border>
-                                        </Grid>
-                                    </DataTemplate>
-                                </ListBox.ItemTemplate>
-                            </ListBox>
-                        </Grid>
-                    </Grid>
-                </TabItem>
-                -->
+                                        </StackPanel>
 
-                <!-- ВКЛАДКА 1: НАСТРОЙКИ (С ПРОКРУТКОЙ) -->
+                                        <!-- Подзаголовок -->
+                                        <TextBlock Text="Автоматическая смена обоев Bing и Wallhaven" Foreground="#888888" FontSize="11" HorizontalAlignment="Center" Margin="0,6,0,14"/>
 
-                <!-- ВКЛАДКА 2: О ПРОГРАММЕ (С ПРОКРУТКОЙ И ВЫРАВНИВАНИЕМ) -->
-                <TabItem>
-                    <ScrollViewer Style="{StaticResource SettingsScrollViewerStyle}" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                        <StackPanel Margin="0,0,12,0">
-                            <!-- Логотип и Название -->
-                            <StackPanel Margin="0,16,0,20" HorizontalAlignment="Center">
-                                <Image Source="pack://application:,,,/Assets/logo.png" Width="72" Height="72" HorizontalAlignment="Center" Margin="0,0,0,12"/>
-                                <TextBlock Text="WallTray" Foreground="#ffffff" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center"/>
-                                <TextBlock Text="Автоматическая смена обоев" Foreground="#888888" FontSize="12" HorizontalAlignment="Center" Margin="0,4,0,0"/>
-                            </StackPanel>
+                                        <!-- Быстрые кнопки-ссылки (GitHub / Архив) -->
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                            <Button Style="{StaticResource FluentButtonStyle}" Height="28" Padding="12,0" Background="#252525" BorderBrush="#383838" BorderThickness="1" Margin="0,0,8,0"
+                                                    Command="{Binding OpenUrlCommand}" CommandParameter="https://github.com/l1ratch/WallTray">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Path Data="{StaticResource IconGithub}" Fill="#ffffff" Width="13" Height="13" Stretch="Uniform" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                                    <TextBlock Text="GitHub" Foreground="#ffffff" FontSize="11" FontWeight="Medium" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Button>
 
-                            <!-- Обновления (GitHub) -->
-                            <Border Background="#202020" BorderBrush="#2d2d2d" BorderThickness="1" CornerRadius="6" Padding="16,12" Margin="0,10,0,16">
-                                <StackPanel>
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                                        <TextBlock Text="Обновления приложения" Foreground="#e0e0e0" FontSize="11" FontWeight="SemiBold"/>
-                                        <Border Background="#175b31" CornerRadius="8" Padding="6,2" Margin="8,0,0,0">
-                                            <Border.Style>
-                                                <Style TargetType="Border">
-                                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding IsUpdateAvailable}" Value="True">
-                                                            <Setter Property="Visibility" Value="Visible"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Border.Style>
-                                            <TextBlock Text="Доступно" Foreground="#9ee4ad" FontSize="9" FontWeight="SemiBold"/>
-                                        </Border>
-                                    </StackPanel>
-                                    <TextBlock Text="{Binding UpdateStatusText}" Foreground="#f0f0f0" FontSize="12" Margin="0,0,0,12"/>
-                                    
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        
-                                        <Button Grid.Column="0" Command="{Binding CheckUpdateCommand}" Content="Проверить сейчас" Height="32" 
-                                                Style="{StaticResource AccentButtonStyle}" Margin="0,0,8,0"/>
-
-                                        <Button Grid.Column="1" Command="{Binding OpenReleaseUrlCommand}" Content="Скачать" Width="80" Height="32">
-                                            <Button.Style>
-                                                <Style TargetType="Button" BasedOn="{StaticResource FluentButtonStyle}">
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding IsUpdateAvailable}" Value="False">
-                                                            <Setter Property="Visibility" Value="Collapsed"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Button.Style>
-                                        </Button>
-                                    </Grid>
-                                </StackPanel>
-                            </Border>
-
-                            <!-- Лицензии и Благодарности (Сворачиваемый список, выровнен по ширине с карточкой выше) -->
-                            <Expander Style="{StaticResource ModernExpanderStyle}" ExpandDirection="Down" Margin="0,0,0,12">
-                                <Expander.Header>
-                                    <TextBlock Text="Используемые компоненты и лицензии" Foreground="#e0e0e0" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                                </Expander.Header>
-                                <StackPanel Margin="12,10,12,10">
-                                    <!-- Лицензия v5tech/bing-wallpaper -->
-                                    <Border BorderBrush="#3d3d3d" BorderThickness="0,0,0,1" Padding="0,0,0,10" Margin="0,0,0,8">
-                                        <StackPanel>
-                                            <TextBlock Text="v5tech/bing-wallpaper (GitHub)" Foreground="#ffffff" FontSize="11" FontWeight="SemiBold" Margin="0,0,0,2"/>
-                                            <TextBlock Text="Исторический архив обоев Bing. Используется для подгрузки прошлых подборок картинок." Foreground="#aaaaaa" FontSize="10" TextWrapping="Wrap" Margin="0,0,0,4"/>
-                                            <Button Style="{StaticResource FluentButtonStyle}" HorizontalAlignment="Left" Margin="0,4,0,0" Padding="10,0" Height="26" Background="#2d2d2d" BorderBrush="#3d3d3d" BorderThickness="1"
+                                            <Button Style="{StaticResource FluentButtonStyle}" Height="28" Padding="12,0" Background="#252525" BorderBrush="#383838" BorderThickness="1"
                                                     Command="{Binding OpenUrlCommand}" CommandParameter="https://github.com/v5tech/bing-wallpaper">
                                                 <StackPanel Orientation="Horizontal">
-                                                    <Path Data="{StaticResource IconGithub}" Fill="#ffffff" Width="11" Height="11" Stretch="Uniform" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                                                    <TextBlock Text="Открыть GitHub репозиторий" Foreground="#ffffff" FontSize="10" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                    <Path Data="{StaticResource IconInfo}" Fill="#888888" Width="12" Height="12" Stretch="Uniform" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                                    <TextBlock Text="Архив Bing" Foreground="#cccccc" FontSize="11" FontWeight="Medium" VerticalAlignment="Center"/>
                                                 </StackPanel>
                                             </Button>
                                         </StackPanel>
-                                    </Border>
+                                    </StackPanel>
+                                </Border>
 
-                                    <!-- WPF / .NET Runtime -->
-                                    <Border BorderBrush="#3d3d3d" BorderThickness="0,0,0,1" Padding="0,0,0,8" Margin="0,0,0,8">
-                                        <StackPanel>
-                                            <TextBlock Text="Microsoft .NET 8.0 &amp; WPF" Foreground="#ffffff" FontSize="11" FontWeight="SemiBold" Margin="0,0,0,2"/>
-                                            <TextBlock Text="Платформа разработки и графическая подсистема для создания приложения." Foreground="#aaaaaa" FontSize="10" TextWrapping="Wrap"/>
+                                <!-- 2. ИНТЕРАКТИВНАЯ КАРТОЧКА "ПАРАМЕТРЫ ПРИЛОЖЕНИЯ" -->
+                                <Button Command="{Binding GoToSettingsCommand}" Style="{StaticResource SettingsCardButtonStyle}" Margin="0,0,0,12">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Иконка шестерёнки в круглом контейнере -->
+                                        <Border Grid.Column="0" Width="40" Height="40" CornerRadius="20" Background="#282828" BorderBrush="#3a3a3a" BorderThickness="1" Margin="0,0,14,0" VerticalAlignment="Center">
+                                            <Path Data="{StaticResource IconSettings}" Fill="#52a9ff" Width="18" Height="18" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+
+                                        <!-- Текстовый заголовок и описание -->
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <TextBlock Text="Параметры приложения" Foreground="#ffffff" FontSize="13" FontWeight="SemiBold"/>
+                                            <TextBlock Text="Автозагрузка, темы, каталоги, интервалы и источники" Foreground="#888888" FontSize="11" Margin="0,2,0,0" TextTrimming="CharacterEllipsis"/>
                                         </StackPanel>
-                                    </Border>
 
-                                    <!-- Lucide & Fluent Icons -->
-                                    <Border BorderBrush="#3d3d3d" BorderThickness="0,0,0,1" Padding="0,0,0,8" Margin="0,0,0,8">
-                                        <StackPanel>
-                                            <TextBlock Text="Lucide / Fluent System Icons" Foreground="#ffffff" FontSize="11" FontWeight="SemiBold" Margin="0,0,0,2"/>
-                                            <TextBlock Text="Наборы векторных значков интерфейса (лицензия MIT)." Foreground="#aaaaaa" FontSize="10" TextWrapping="Wrap"/>
-                                        </StackPanel>
-                                    </Border>
+                                        <!-- Стрелочка перехода -->
+                                        <Path Grid.Column="2" Data="{StaticResource IconChevronRight}" Fill="#888888" Width="14" Height="14" Stretch="Uniform" VerticalAlignment="Center" Margin="8,0,4,0"/>
+                                    </Grid>
+                                </Button>
 
-                                    <!-- System.Text.Json -->
-                                    <Border Padding="0" Margin="0">
-                                        <StackPanel>
-                                            <TextBlock Text="System.Text.Json" Foreground="#ffffff" FontSize="11" FontWeight="SemiBold" Margin="0,0,0,2"/>
-                                            <TextBlock Text="Библиотека для высокопроизводительной сериализации и парсинга JSON (лицензия MIT)." Foreground="#aaaaaa" FontSize="10" TextWrapping="Wrap"/>
-                                        </StackPanel>
-                                    </Border>
-                                </StackPanel>
-                            </Expander>
+                                <!-- 3. РАЗДЕЛ ОБНОВЛЕНИЙ -->
+                                <Border Background="#1c1c1c" BorderBrush="#2b2b2b" BorderThickness="1" CornerRadius="12" Padding="16,14" Margin="0,0,0,8">
+                                    <StackPanel>
+                                        <!-- Верхняя строка: заголовок и статус-бейдж -->
+                                        <Grid Margin="0,0,0,10">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
 
-                            <Button Command="{Binding GoToSettingsCommand}" Content="Открыть параметры" Style="{StaticResource AccentButtonStyle}"
-                                    Height="38" FontSize="12" Margin="0,0,0,8"/>
-                        </StackPanel>
-                    </ScrollViewer>
+                                            <!-- Заголовок с иконкой -->
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <Path Data="{StaticResource IconRefresh}" Fill="#52a9ff" Width="14" Height="14" Stretch="Uniform" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                                <TextBlock Text="Обновления" Foreground="#ffffff" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                            </StackPanel>
+
+                                            <!-- Бейдж статуса -->
+                                            <Border Grid.Column="1" CornerRadius="10" Padding="8,3" VerticalAlignment="Center">
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="Background" Value="#262626"/>
+                                                        <Setter Property="BorderBrush" Value="#353535"/>
+                                                        <Setter Property="BorderThickness" Value="1"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsUpdateAvailable}" Value="True">
+                                                                <Setter Property="Background" Value="#174526"/>
+                                                                <Setter Property="BorderBrush" Value="#257a3e"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Ellipse Width="6" Height="6" Margin="0,0,6,0" VerticalAlignment="Center">
+                                                        <Ellipse.Style>
+                                                            <Style TargetType="Ellipse">
+                                                                <Setter Property="Fill" Value="#888888"/>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding IsUpdateAvailable}" Value="True">
+                                                                        <Setter Property="Fill" Value="#7ee787"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Ellipse.Style>
+                                                    </Ellipse>
+                                                    <TextBlock FontSize="10" FontWeight="SemiBold" VerticalAlignment="Center">
+                                                        <TextBlock.Style>
+                                                            <Style TargetType="TextBlock">
+                                                                <Setter Property="Text" Value="Проверка"/>
+                                                                <Setter Property="Foreground" Value="#aaaaaa"/>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding IsUpdateAvailable}" Value="True">
+                                                                        <Setter Property="Text" Value="Есть обновление"/>
+                                                                        <Setter Property="Foreground" Value="#7ee787"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </TextBlock.Style>
+                                                    </TextBlock>
+                                                </StackPanel>
+                                            </Border>
+                                        </Grid>
+
+                                        <!-- Текст статуса -->
+                                        <TextBlock Text="{Binding UpdateStatusText}" Foreground="#b0b0b0" FontSize="11" Margin="0,0,0,12"/>
+
+                                        <!-- Кнопки управления обновлениями -->
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <!-- Проверить сейчас -->
+                                            <Button Grid.Column="0" Command="{Binding CheckUpdateCommand}" Height="34"
+                                                    Style="{StaticResource FluentButtonStyle}" Background="#262626" BorderBrush="#383838" BorderThickness="1"
+                                                    Margin="0,0,8,0">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Path Data="{StaticResource IconRefresh}" Fill="#ffffff" Width="12" Height="12" Stretch="Uniform" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                                    <TextBlock Text="Проверить обновления" Foreground="#ffffff" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Button>
+
+                                            <!-- Скачать (если доступно) -->
+                                            <Button Grid.Column="1" Command="{Binding OpenReleaseUrlCommand}" Height="34" Padding="14,0">
+                                                <Button.Style>
+                                                    <Style TargetType="Button" BasedOn="{StaticResource AccentButtonStyle}">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsUpdateAvailable}" Value="True">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Button.Style>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Path Data="{StaticResource IconDownload}" Fill="#ffffff" Width="12" Height="12" Stretch="Uniform" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                                    <TextBlock Text="Скачать" Foreground="#ffffff" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Button>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Grid>
                 </TabItem>
 
                 <!-- ВКЛАДКА 3: ИЗБРАННОЕ -->
                 <TabItem>
-                    <Grid>
+                    <Grid Margin="14,0,14,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
 
                         <!-- Список избранного -->
                         <ScrollViewer Style="{StaticResource SettingsScrollViewerStyle}" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                            <Grid Margin="2,0,6,0">
+                            <Grid Margin="0,4,0,12">
+                                <!-- Скелетон-заглушки при загрузке списка -->
+                                <StackPanel Visibility="{Binding IsFavoritesLoading, Converter={StaticResource BoolToVisibility}}">
+                                    <!-- Скелетон карточка 1 -->
+                                    <Border Background="#202020" BorderBrush="#282828" BorderThickness="1" CornerRadius="8" Margin="0,0,0,10" Padding="10" Opacity="0.8">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="100"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Border Grid.Column="0" Width="100" Height="62" CornerRadius="4" Background="#2a2a2a"/>
+                                            <Grid Grid.Column="1" Margin="12,0,0,0">
+                                                <StackPanel VerticalAlignment="Top">
+                                                    <Border Background="#2e2e2e" Height="14" Width="160" HorizontalAlignment="Left" CornerRadius="3" Margin="0,2,0,0"/>
+                                                    <Border Background="#252525" Height="10" Width="200" HorizontalAlignment="Left" CornerRadius="2" Margin="0,6,0,0"/>
+                                                </StackPanel>
+                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,6,0,0">
+                                                    <Border Width="30" Height="30" CornerRadius="15" Background="#272727" Margin="0,0,6,0"/>
+                                                    <Border Width="30" Height="30" CornerRadius="15" Background="#272727" Margin="0,0,6,0"/>
+                                                    <Border Width="30" Height="30" CornerRadius="15" Background="#272727"/>
+                                                </StackPanel>
+                                            </Grid>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- Скелетон карточка 2 -->
+                                    <Border Background="#202020" BorderBrush="#282828" BorderThickness="1" CornerRadius="8" Margin="0,0,0,10" Padding="10" Opacity="0.6">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="100"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Border Grid.Column="0" Width="100" Height="62" CornerRadius="4" Background="#2a2a2a"/>
+                                            <Grid Grid.Column="1" Margin="12,0,0,0">
+                                                <StackPanel VerticalAlignment="Top">
+                                                    <Border Background="#2e2e2e" Height="14" Width="130" HorizontalAlignment="Left" CornerRadius="3" Margin="0,2,0,0"/>
+                                                    <Border Background="#252525" Height="10" Width="180" HorizontalAlignment="Left" CornerRadius="2" Margin="0,6,0,0"/>
+                                                </StackPanel>
+                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,6,0,0">
+                                                    <Border Width="30" Height="30" CornerRadius="15" Background="#272727" Margin="0,0,6,0"/>
+                                                    <Border Width="30" Height="30" CornerRadius="15" Background="#272727" Margin="0,0,6,0"/>
+                                                    <Border Width="30" Height="30" CornerRadius="15" Background="#272727"/>
+                                                </StackPanel>
+                                            </Grid>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- Скелетон карточка 3 -->
+                                    <Border Background="#202020" BorderBrush="#282828" BorderThickness="1" CornerRadius="8" Margin="0,0,0,10" Padding="10" Opacity="0.4">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="100"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Border Grid.Column="0" Width="100" Height="62" CornerRadius="4" Background="#2a2a2a"/>
+                                            <Grid Grid.Column="1" Margin="12,0,0,0">
+                                                <StackPanel VerticalAlignment="Top">
+                                                    <Border Background="#2e2e2e" Height="14" Width="150" HorizontalAlignment="Left" CornerRadius="3" Margin="0,2,0,0"/>
+                                                    <Border Background="#252525" Height="10" Width="140" HorizontalAlignment="Left" CornerRadius="2" Margin="0,6,0,0"/>
+                                                </StackPanel>
+                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,6,0,0">
+                                                    <Border Width="30" Height="30" CornerRadius="15" Background="#272727" Margin="0,0,6,0"/>
+                                                    <Border Width="30" Height="30" CornerRadius="15" Background="#272727" Margin="0,0,6,0"/>
+                                                    <Border Width="30" Height="30" CornerRadius="15" Background="#272727"/>
+                                                </StackPanel>
+                                            </Grid>
+                                        </Grid>
+                                    </Border>
+                                </StackPanel>
+
                                 <!-- Текст при пустом списке избранного -->
                                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,120,0,0" IsHitTestVisible="False"
-                                            Visibility="{Binding IsFavoritesEmpty, Converter={StaticResource BoolToVisibility}}">
+                                            Visibility="{Binding ShowFavoritesEmpty, Converter={StaticResource BoolToVisibility}}">
                                     <TextBlock Text="★" Foreground="#444444" FontSize="56" HorizontalAlignment="Center" Margin="0,0,0,10"/>
                                     <TextBlock Text="Список избранного пуст" Foreground="#ffffff" FontSize="15" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,0,0,6"/>
                                     <TextBlock Text="Добавляйте понравившиеся обои с помощью кнопки ★ на главном экране." Foreground="#888888" FontSize="11" TextAlignment="Center" HorizontalAlignment="Center" Width="280" TextWrapping="Wrap"/>
@@ -1087,7 +1179,7 @@
 
                                 <!-- Элементы списка -->
                                 <ItemsControl ItemsSource="{Binding FavoritesCollection}"
-                                              Visibility="{Binding HasFavorites, Converter={StaticResource BoolToVisibility}}">
+                                              Visibility="{Binding ShowFavoritesList, Converter={StaticResource BoolToVisibility}}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
                                             <!-- Карточка избранного -->
@@ -1098,9 +1190,9 @@
                                                         <ColumnDefinition Width="*"/>
                                                     </Grid.ColumnDefinitions>
 
-                                                    <!-- Миниатюра (закругленная) -->
+                                                    <!-- Миниатюра (закругленная) с быстрым кэшированным декодером -->
                                                     <Border Grid.Column="0" Width="100" Height="62" CornerRadius="4" ClipToBounds="True" Background="#121212">
-                                                        <Image Source="{Binding DisplayPath}" Stretch="UniformToFill"/>
+                                                        <Image Source="{Binding DisplayPath, Converter={StaticResource PathToThumbnailConverter}}" Stretch="UniformToFill"/>
                                                     </Border>
 
                                                     <!-- Текст и Кнопки управления справа -->
@@ -1122,21 +1214,21 @@
                                                             <Button Command="{Binding DataContext.ApplyFavoriteCommand, RelativeSource={RelativeSource AncestorType=Window}}" 
                                                                     CommandParameter="{Binding}" ToolTip="Установить обоями"
                                                                     Style="{StaticResource RoundIconButtonStyle}" Margin="0,0,6,0">
-                                                                <Path Data="{StaticResource IconMonitor}" Fill="#cccccc" Width="12" Height="12" Stretch="Uniform"/>
+                                                                <Path Data="{StaticResource IconMonitor}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="12" Height="12" Stretch="Uniform"/>
                                                             </Button>
 
                                                             <!-- Открыть в папке -->
                                                             <Button Command="{Binding DataContext.OpenFavoriteFolderCommand, RelativeSource={RelativeSource AncestorType=Window}}" 
                                                                     CommandParameter="{Binding}" ToolTip="Показать в папке"
                                                                     Style="{StaticResource RoundIconButtonStyle}" Margin="0,0,6,0">
-                                                                <Path Data="{StaticResource IconFolder}" Fill="#cccccc" Width="12" Height="12" Stretch="Uniform"/>
+                                                                <Path Data="{StaticResource IconFolder}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="12" Height="12" Stretch="Uniform"/>
                                                             </Button>
 
                                                             <!-- Удалить из избранного -->
                                                             <Button Command="{Binding DataContext.RemoveFavoriteItemCommand, RelativeSource={RelativeSource AncestorType=Window}}" 
                                                                     CommandParameter="{Binding}" ToolTip="Удалить из избранного"
                                                                     Style="{StaticResource RoundIconButtonStyle}">
-                                                                <Path Data="{StaticResource IconDelete}" Fill="#cccccc" Width="12" Height="12" Stretch="Uniform"/>
+                                                                <Path Data="{StaticResource IconDelete}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="12" Height="12" Stretch="Uniform"/>
                                                             </Button>
                                                         </StackPanel>
                                                     </Grid>
@@ -1152,7 +1244,7 @@
 
                 <!-- ВКЛАДКА 4: ДЕТАЛИ ИЗОБРАЖЕНИЯ -->
                 <TabItem>
-                    <Grid Margin="0,0,6,0">
+                    <Grid Margin="14,0,14,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
@@ -1160,7 +1252,7 @@
 
                         <!-- Содержимое деталей -->
                         <ScrollViewer Grid.Row="1" Style="{StaticResource SettingsScrollViewerStyle}" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                            <StackPanel Margin="0,0,6,0">
+                            <StackPanel Margin="0,4,0,12">
                                 <!-- Крупное превью с закруглениями -->
                                 <Border Height="300" Background="#121212" CornerRadius="8" ClipToBounds="True" BorderBrush="#2d2d2d" BorderThickness="1">
                                     <Grid>
@@ -1185,7 +1277,7 @@
                                 </Border>
 
                                 <!-- Информация об обоях -->
-                                <StackPanel Margin="2,14,2,14">
+                                <StackPanel Margin="0,14,0,0">
                                     <TextBlock Text="{Binding SelectedDetailsImage.Title}" Foreground="#ffffff" FontSize="18" FontWeight="Bold" TextWrapping="Wrap" Margin="0,0,0,6"/>
                                     
                                     <Border Background="#202020" BorderBrush="#2d2d2d" BorderThickness="1" CornerRadius="6" Padding="12" Margin="0,6,0,14">
@@ -1244,18 +1336,18 @@
                 </TabItem>
             </TabControl>
 
-            <!-- 3. НИЖНЯЯ НАВИГАЦИЯ (единая плоская панель-докер) -->
-            <Border Grid.Row="2" Margin="0,12,0,0" Background="#151515" BorderBrush="#262626" BorderThickness="1" CornerRadius="14"
+            <!-- 3. НИЖНЯЯ НАВИГАЦИЯ (встроенный нижний докер с верхней линией-разделителем) -->
+            <Border Grid.Row="2" Margin="0,8,0,0" Background="#141414" BorderBrush="#252525" BorderThickness="0,1,0,0" CornerRadius="0,0,9,9"
                     Visibility="{Binding IsBottomNavVisible, Converter={StaticResource BoolToVisibility}}" Opacity="0">
                 <Border.RenderTransform>
-                    <TranslateTransform Y="10"/>
+                    <TranslateTransform Y="6"/>
                 </Border.RenderTransform>
                 <Border.Triggers>
                     <EventTrigger RoutedEvent="FrameworkElement.Loaded">
                         <BeginStoryboard>
                             <Storyboard>
-                                <DoubleAnimation Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.22"/>
-                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)" To="0" Duration="0:0:0.22">
+                                <DoubleAnimation Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2"/>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)" To="0" Duration="0:0:0.2">
                                     <DoubleAnimation.EasingFunction>
                                         <CubicEase EasingMode="EaseOut"/>
                                     </DoubleAnimation.EasingFunction>
@@ -1264,7 +1356,7 @@
                         </BeginStoryboard>
                     </EventTrigger>
                 </Border.Triggers>
-                <Grid Margin="4">
+                <Grid Margin="6,4,6,4">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition x:Name="WallhavenNavColumn" Width="*">

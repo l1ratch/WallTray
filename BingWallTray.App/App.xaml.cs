@@ -137,8 +137,16 @@ namespace BingWallTray.App
                 brokenSettingsFile = brokenFile;
             };
 
-            // 3. Загрузка настроек
+            // 3. Загрузка настроек и прогрев базы кэша с автоматической миграцией путей
             var settings = await _settingsService.LoadAsync();
+            try
+            {
+                await _wallpaperCacheService.GetAllAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning($"Предупреждение при инициализации базы кэша: {ex.Message}");
+            }
 
             // Создаем папки по умолчанию
             try

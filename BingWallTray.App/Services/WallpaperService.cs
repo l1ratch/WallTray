@@ -18,6 +18,7 @@ namespace BingWallTray.App.Services
     public interface IWallpaperService
     {
         bool SetWallpaper(string imagePath, WallpaperStyle style);
+        Task<bool> SetWallpaperAsync(string imagePath, WallpaperStyle style);
     }
 
     public class WallpaperService : IWallpaperService
@@ -120,6 +121,11 @@ namespace BingWallTray.App.Services
                 _logger.LogError("Ошибка в процессе установки обоев", ex);
                 return false;
             }
+        }
+
+        public Task<bool> SetWallpaperAsync(string imagePath, WallpaperStyle style)
+        {
+            return Task.Run(() => SetWallpaper(imagePath, style));
         }
     }
 }

@@ -57,8 +57,7 @@ namespace BingWallTray.App.Services
             // Загружаем кэшированную подборку обоев для мгновенной загрузки при старте
             try
             {
-                string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                string cachePath = Path.Combine(appData, "WallTray", "today_cache.json");
+                string cachePath = AppPaths.TodayCacheFilePath;
                 if (File.Exists(cachePath))
                 {
                     string json = File.ReadAllText(cachePath);
@@ -273,10 +272,9 @@ namespace BingWallTray.App.Services
                 // Записываем полученную подборку в кэш
                 try
                 {
-                    string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                    string cacheDir = Path.Combine(appData, "WallTray");
+                    string cacheDir = AppPaths.AppDataFolder;
                     if (!Directory.Exists(cacheDir)) Directory.CreateDirectory(cacheDir);
-                    string cachePath = Path.Combine(cacheDir, "today_cache.json");
+                    string cachePath = AppPaths.TodayCacheFilePath;
                     string json = JsonSerializer.Serialize(latestImages);
                     File.WriteAllText(cachePath, json);
                 }
