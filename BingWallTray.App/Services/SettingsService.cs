@@ -13,6 +13,7 @@ namespace BingWallTray.App.Services
         Task<AppSettings> LoadAsync();
         Task SaveAsync(AppSettings settings);
         event EventHandler<string>? SettingsCorrupted;
+        event EventHandler<AppSettings>? SettingsChanged;
     }
 
     public class SettingsService : ISettingsService
@@ -25,6 +26,7 @@ namespace BingWallTray.App.Services
         public AppSettings CurrentSettings { get; private set; }
 
         public event EventHandler<string>? SettingsCorrupted;
+        public event EventHandler<AppSettings>? SettingsChanged;
 
         public SettingsService(ILoggingService logger, IDateTimeProvider dateTimeProvider)
         {
@@ -258,6 +260,7 @@ namespace BingWallTray.App.Services
                 CurrentSettings = settings;
                 UpdateLoggerSettings(CurrentSettings);
                 _logger.LogInfo("Настройки успешно сохранены.");
+                SettingsChanged?.Invoke(this, settings);
             }
             catch (Exception ex)
             {

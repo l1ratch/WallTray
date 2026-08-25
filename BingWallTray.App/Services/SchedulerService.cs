@@ -28,6 +28,7 @@ namespace BingWallTray.App.Services
         private readonly IWallpaperService _wallpaperService;
         private readonly INotificationService _notificationService;
         private readonly IDateTimeProvider _dateTimeProvider;
+        private readonly IWallhavenService? _wallhavenService;
         private readonly AppState _appState;
 
         private System.Threading.Timer? _timer;
@@ -42,7 +43,8 @@ namespace BingWallTray.App.Services
             IWallpaperService wallpaperService,
             INotificationService notificationService,
             IDateTimeProvider dateTimeProvider,
-            AppState appState)
+            AppState appState,
+            IWallhavenService? wallhavenService = null)
         {
             _logger = logger;
             _settingsService = settingsService;
@@ -53,6 +55,7 @@ namespace BingWallTray.App.Services
             _notificationService = notificationService;
             _dateTimeProvider = dateTimeProvider;
             _appState = appState;
+            _wallhavenService = wallhavenService;
 
             // Загружаем кэшированную подборку обоев для мгновенной загрузки при старте
             try
@@ -318,6 +321,22 @@ namespace BingWallTray.App.Services
                     var rand = new Random();
                     todayImage = latestImages[rand.Next(latestImages.Count)];
                     todayImageId = $"{todayImage.StartDate}_{settings.Market}";
+                }
+                else if (string.Equals(settings.AutoChangeSource, "Wallhaven", StringComparison.OrdinalIgnoreCase) && _wallhavenService != null)
+                {
+                    var wallhavenImages = await _wallhavenService.GetWallhavenImagesAsync(settings.WallhavenQuery, settings.WallhavenCategories, settings.WallhavenResolutions);
+                    if (wallhavenImages != null && wallhavenImages.Count > 0)
+                    {
+                        var rand = new Random();
+                        todayImage = wallhavenImages[rand.Next(wallhavenImages.Count)];
+                        todayImageId = "Wallhaven_" + Path.GetFileNameWithoutExtension(todayImage.Url);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Автосмена настроена на 'Wallhaven', но список пуст. Используем сегодняшние обои Bing.");
+                        todayImage = latestImages.First();
+                        todayImageId = $"{todayImage.StartDate}_{settings.Market}";
+                    }
                 }
                 else // TodayBing или NewBing
                 {

@@ -15,6 +15,8 @@
         <Geometry x:Key="IconStorage">M19,4H5C3.89,4 3,4.89 3,6V18A2,2 0 0,0 5,20H19A2,2 0 0,0 21,18V6C21,4.89 20.1,4 19,4M19,7V9H5V7H19M5,18V11H19V18H5M6,14H8V16H6V14Z</Geometry>
         <Geometry x:Key="IconDiagnostics">M20,19V7H4V19H20M20,3A2,2 0 0,1 22,5V19A2,2 0 0,1 20,21H4A2,2 0 0,1 2,19V5A2,2 0 0,1 4,3H20M13,10V12H11V10H13M13,14V16H11V14H13M7.5,17L6,15.5L8.5,13L6,10.5L7.5,9L11.5,13L7.5,17Z</Geometry>
         <Geometry x:Key="IconAbout">M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z</Geometry>
+        <Geometry x:Key="IconInfo">M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z</Geometry>
+        <Geometry x:Key="IconCheck">M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z</Geometry>
         <Geometry x:Key="IconUpdates">M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z</Geometry>
         <Geometry x:Key="IconLicenses">M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M10,19L12,15H9V10H15V12L13,16H15V19H10Z</Geometry>
         <Geometry x:Key="IconTerminal">M20,4H4A2,2 0 0,0 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6A2,2 0 0,0 20,4M20,18H4V6H20V18M6,10L10,14L6,18H8.5L12.5,14L8.5,10H6M13,16H18V18H13V16Z</Geometry>
@@ -356,6 +358,30 @@
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="bg" Property="Background" Value="#006cc1"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SuccessButton" TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
+            <Setter Property="Background" Value="#107c41"/>
+            <Setter Property="BorderBrush" Value="#158f4b"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bg" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bg" Property="Background" Value="#148d4a"/>
+                                <Setter TargetName="bg" Property="BorderBrush" Value="#1ba357"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="bg" Property="Background" Value="#0c6635"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -889,8 +915,8 @@
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <StackPanel Grid.Column="0" Margin="0,0,24,0" VerticalAlignment="Center">
-                                        <TextBlock Text="Исторический архив Bing" FontWeight="Medium" Foreground="#ffffff" FontSize="13"/>
-                                        <TextBlock Text="Загружать в каталог историю обоев за предыдущие дни и недели" Foreground="#888888" FontSize="11" Margin="0,3,0,0" TextWrapping="Wrap"/>
+                                        <TextBlock Text="Исторический архив обоев Bing" FontWeight="Medium" Foreground="#ffffff" FontSize="13"/>
+                                        <TextBlock Text="Отображать в галерее и автосмене коллекцию обоев Bing за прошлые дни, недели и месяцы из открытого онлайн-архива GitHub" Foreground="#888888" FontSize="11" Margin="0,3,0,0" TextWrapping="Wrap"/>
                                     </StackPanel>
                                     <CheckBox Grid.Column="1" IsChecked="{Binding EnableHistoricalArchive}" Style="{StaticResource ToggleSwitch}" VerticalAlignment="Center"/>
                                 </Grid>
@@ -1041,79 +1067,116 @@
                                 </Grid>
                             </Border>
 
-                            <!-- Источник обоев -->
-                            <Border Style="{StaticResource SettingsCard}">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
-                                    <StackPanel Grid.Column="0" Margin="0,0,24,0" VerticalAlignment="Center">
-                                        <TextBlock Text="Источник изображений" FontWeight="Medium" Foreground="#ffffff" FontSize="13"/>
-                                        <TextBlock Text="Откуда выбирать обои для автоматической установки" Foreground="#888888" FontSize="11" Margin="0,3,0,0" TextWrapping="Wrap"/>
-                                    </StackPanel>
-                                    <ComboBox Grid.Column="1" Width="180" SelectedValuePath="Tag" SelectedValue="{Binding AutoChangeSource}" VerticalAlignment="Center">
-                                        <ComboBoxItem Content="Сегодняшние Bing" Tag="TodayBing"/>
-                                        <ComboBoxItem Content="Случайные Bing" Tag="RandomBing"/>
-                                        <ComboBoxItem Content="Избранное" Tag="Favorites"/>
-                                    </ComboBox>
-                                </Grid>
-                            </Border>
+                            <!-- Блок параметров автосмены (активен, если включена автосмена) -->
+                            <StackPanel IsEnabled="{Binding IsAutoChangeOptionsEnabled}">
+                                <StackPanel.Style>
+                                    <Style TargetType="StackPanel">
+                                        <Setter Property="Opacity" Value="1.0"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsAutoChangeOptionsEnabled}" Value="False">
+                                                <Setter Property="Opacity" Value="0.45"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </StackPanel.Style>
 
-                            <!-- Условие запуска -->
-                            <Border Style="{StaticResource SettingsCard}">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
-                                    <StackPanel Grid.Column="0" Margin="0,0,24,0" VerticalAlignment="Center">
-                                        <TextBlock Text="Событие для смены обоев" FontWeight="Medium" Foreground="#ffffff" FontSize="13"/>
-                                        <TextBlock Text="Когда запускать смену: периодически по интервалу, при запуске программы или оба варианта" Foreground="#888888" FontSize="11" Margin="0,3,0,0" TextWrapping="Wrap"/>
-                                    </StackPanel>
-                                    <ComboBox Grid.Column="1" Width="180" SelectedValuePath="Tag" SelectedValue="{Binding AutoChangeTrigger}" VerticalAlignment="Center">
-                                        <ComboBoxItem Content="По интервалу" Tag="Interval"/>
-                                        <ComboBoxItem Content="При запуске" Tag="Startup"/>
-                                        <ComboBoxItem Content="Интервал и запуск" Tag="Both"/>
-                                    </ComboBox>
-                                </Grid>
-                            </Border>
+                                <!-- Источник обоев -->
+                                <TextBlock Text="ИСТОЧНИК ИЗОБРАЖЕНИЙ" Style="{StaticResource SectionGroupHeader}"/>
 
-                            <!-- Интервал автосмены -->
-                            <Border Style="{StaticResource SettingsCard}" Visibility="{Binding IsIntervalTriggerVisible, Converter={StaticResource BoolToVisibility}}">
-                                <StackPanel>
+                                <Border Style="{StaticResource SettingsCard}">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <StackPanel Grid.Column="0" Margin="0,0,24,0" VerticalAlignment="Center">
-                                            <TextBlock Text="Интервал автосмены" FontWeight="Medium" Foreground="#ffffff" FontSize="13"/>
-                                            <TextBlock Text="Периодичность смены обоев в фоновом режиме" Foreground="#888888" FontSize="11" Margin="0,3,0,0" TextWrapping="Wrap"/>
+                                            <TextBlock Text="Коллекция для автосмены" FontWeight="Medium" Foreground="#ffffff" FontSize="13"/>
+                                            <TextBlock Text="Откуда выбирать обои для автоматической установки" Foreground="#888888" FontSize="11" Margin="0,3,0,0" TextWrapping="Wrap"/>
                                         </StackPanel>
-                                        <ComboBox Grid.Column="1" Width="140" SelectedValuePath="Content" SelectedValue="{Binding SelectedIntervalPreset}" VerticalAlignment="Center">
-                                            <ComboBoxItem Content="15m"/>
-                                            <ComboBoxItem Content="30m"/>
-                                            <ComboBoxItem Content="1h"/>
-                                            <ComboBoxItem Content="2h"/>
-                                            <ComboBoxItem Content="6h"/>
-                                            <ComboBoxItem Content="12h"/>
-                                            <ComboBoxItem Content="24h"/>
-                                            <ComboBoxItem Content="Custom"/>
+                                        <ComboBox Grid.Column="1" Width="180" SelectedValuePath="Tag" SelectedValue="{Binding AutoChangeSource}" VerticalAlignment="Center">
+                                            <ComboBoxItem Content="Сегодняшние Bing" Tag="TodayBing"/>
+                                            <ComboBoxItem Content="Случайные Bing" Tag="RandomBing"/>
+                                            <ComboBoxItem Content="Wallhaven" Tag="Wallhaven" Visibility="{Binding IsWallhavenAutoChangeAvailable, Converter={StaticResource BoolToVisibility}}"/>
+                                            <ComboBoxItem Content="Избранное" Tag="Favorites"/>
                                         </ComboBox>
                                     </Grid>
+                                </Border>
 
-                                    <!-- Пользовательский интервал -->
-                                    <Grid Margin="0,12,0,0" Visibility="{Binding IsCustomIntervalVisible, Converter={StaticResource BoolToVisibility}}">
+                                <!-- Пояснение для режима "Сегодняшние Bing" -->
+                                <Border Style="{StaticResource SettingsCard}" Visibility="{Binding IsTodayBingSelected, Converter={StaticResource BoolToVisibility}}">
+                                    <Grid>
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Grid.Column="0" Text="Собственное значение (например: 45m, 3h):" Foreground="#888888" FontSize="11" VerticalAlignment="Center" Margin="0,0,16,0" TextWrapping="Wrap"/>
-                                        <TextBox Grid.Column="1" Width="140" Text="{Binding CustomIntervalString, UpdateSourceTrigger=PropertyChanged}"/>
+                                        <Path Grid.Column="0" Data="{StaticResource IconInfo}" Fill="#0078d4" Width="16" Height="16" Stretch="Uniform" VerticalAlignment="Top" Margin="0,2,14,0"/>
+                                        <StackPanel Grid.Column="1">
+                                            <TextBlock Text="Режим «Обои дня Bing»" FontWeight="Medium" Foreground="#ffffff" FontSize="12.5"/>
+                                            <TextBlock Text="Новые обои Microsoft Bing выходят один раз в сутки. Приложение проверяет публикацию свежего изображения и обновляет рабочий стол при смене дня или при запуске Windows." Foreground="#888888" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"/>
+                                        </StackPanel>
                                     </Grid>
+                                </Border>
+
+                                <!-- Параметры периодической автосмены (Случайные Bing, Wallhaven, Избранное) -->
+                                <StackPanel Visibility="{Binding IsPeriodicSourceSelected, Converter={StaticResource BoolToVisibility}}">
+                                    <!-- Условие запуска -->
+                                    <TextBlock Text="РАСПИСАНИЕ И ТРИГГЕРЫ" Style="{StaticResource SectionGroupHeader}"/>
+
+                                    <Border Style="{StaticResource SettingsCard}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" Margin="0,0,24,0" VerticalAlignment="Center">
+                                                <TextBlock Text="Событие для смены обоев" FontWeight="Medium" Foreground="#ffffff" FontSize="13"/>
+                                                <TextBlock Text="Когда запускать смену: периодически по интервалу, при запуске программы или оба варианта" Foreground="#888888" FontSize="11" Margin="0,3,0,0" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                            <ComboBox Grid.Column="1" Width="180" SelectedValuePath="Tag" SelectedValue="{Binding AutoChangeTrigger}" VerticalAlignment="Center">
+                                                <ComboBoxItem Content="По интервалу" Tag="Interval"/>
+                                                <ComboBoxItem Content="При запуске" Tag="Startup"/>
+                                                <ComboBoxItem Content="Интервал и запуск" Tag="Both"/>
+                                            </ComboBox>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- Интервал автосмены -->
+                                    <Border Style="{StaticResource SettingsCard}" Visibility="{Binding IsIntervalTriggerVisible, Converter={StaticResource BoolToVisibility}}">
+                                        <StackPanel>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0" Margin="0,0,24,0" VerticalAlignment="Center">
+                                                    <TextBlock Text="Интервал автосмены" FontWeight="Medium" Foreground="#ffffff" FontSize="13"/>
+                                                    <TextBlock Text="Периодичность смены обоев в фоновом режиме" Foreground="#888888" FontSize="11" Margin="0,3,0,0" TextWrapping="Wrap"/>
+                                                </StackPanel>
+                                                <ComboBox Grid.Column="1" Width="140" SelectedValuePath="Content" SelectedValue="{Binding SelectedIntervalPreset}" VerticalAlignment="Center">
+                                                    <ComboBoxItem Content="15m"/>
+                                                    <ComboBoxItem Content="30m"/>
+                                                    <ComboBoxItem Content="1h"/>
+                                                    <ComboBoxItem Content="2h"/>
+                                                    <ComboBoxItem Content="6h"/>
+                                                    <ComboBoxItem Content="12h"/>
+                                                    <ComboBoxItem Content="24h"/>
+                                                    <ComboBoxItem Content="Custom"/>
+                                                </ComboBox>
+                                            </Grid>
+
+                                            <!-- Пользовательский интервал -->
+                                            <Grid Margin="0,12,0,0" Visibility="{Binding IsCustomIntervalVisible, Converter={StaticResource BoolToVisibility}}">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Grid.Column="0" Text="Собственное значение (например: 45m, 3h):" Foreground="#888888" FontSize="11" VerticalAlignment="Center" Margin="0,0,16,0" TextWrapping="Wrap"/>
+                                                <TextBox Grid.Column="1" Width="140" Text="{Binding CustomIntervalString, UpdateSourceTrigger=PropertyChanged}"/>
+                                            </Grid>
+                                        </StackPanel>
+                                    </Border>
                                 </StackPanel>
-                            </Border>
+                            </StackPanel>
                         </StackPanel>
 
                         <!-- 5. СТРАНИЦА: ХРАНИЛИЩЕ И КЭШ -->
@@ -1421,33 +1484,50 @@
                         <!-- 8. СТРАНИЦА: ЦЕНТР ОБНОВЛЕНИЙ -->
                         <StackPanel Visibility="{Binding IsPageUpdates, Converter={StaticResource BoolToVisibility}}" HorizontalAlignment="Stretch">
                             <TextBlock Text="Обновления" Style="{StaticResource PageTitle}"/>
-                            <TextBlock Text="Автоматическое обновление приложения через систему Velopack и GitHub Releases" Style="{StaticResource PageSubtitle}"/>
+                            <TextBlock Text="Управление версиями и получение последних улучшений WallTray" Style="{StaticResource PageSubtitle}"/>
 
-                            <!-- Служба обновлений Velopack -->
-                            <TextBlock Text="СЛУЖБА ОБНОВЛЕНИЙ VELOPACK" Style="{StaticResource SectionGroupHeader}"/>
-
-                            <Border Style="{StaticResource SettingsCard}">
+                            <!-- Главная карточка статуса обновлений -->
+                            <Border Style="{StaticResource SettingsCard}" Padding="20,18" Margin="0,0,0,12">
                                 <StackPanel>
                                     <Grid>
                                         <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center">
-                                            <TextBlock Text="Статус системы обновлений" FontWeight="Medium" Foreground="#ffffff" FontSize="13"/>
-                                            <TextBlock Text="{Binding UpdateStatusText}" Foreground="#888888" FontSize="11.5" Margin="0,3,0,0" TextWrapping="Wrap"/>
+
+                                        <!-- Круглая иконка статуса -->
+                                        <Border Grid.Column="0" Width="48" Height="48" CornerRadius="24" Background="#162638" BorderBrush="#1f3b5c" BorderThickness="1" Margin="0,0,16,0" VerticalAlignment="Center">
+                                            <Path Data="{StaticResource IconUpdates}" Fill="#0078d4" Width="20" Height="20" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+
+                                        <!-- Основная информация о версии и статусе -->
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,16,0">
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,4">
+                                                <TextBlock Text="WallTray" FontSize="16" FontWeight="SemiBold" Foreground="#ffffff"/>
+                                                <Border Background="#252528" CornerRadius="4" Padding="6,1" Margin="8,0,0,0" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding AppVersion, StringFormat='v{0}'}" FontSize="11" FontWeight="Medium" Foreground="#aaaaaa"/>
+                                                </Border>
+                                            </StackPanel>
+
+                                            <!-- Описание статуса -->
+                                            <TextBlock Text="{Binding UpdateStatusText}" Foreground="#888888" FontSize="12" TextWrapping="Wrap"/>
                                         </StackPanel>
 
-                                        <!-- Кнопки действий -->
-                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <!-- Динамические кнопки действий -->
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                                             <!-- Проверить обновления -->
                                             <Button Content="Проверить обновления" 
                                                     Command="{Binding CheckUpdatesCommand}" 
-                                                    IsEnabled="{Binding IsCheckingUpdate, Converter={StaticResource InverseBoolConverter}}">
+                                                    IsEnabled="{Binding IsCheckingUpdate, Converter={StaticResource InverseBoolConverter}}"
+                                                    Padding="14,8" FontSize="12.5">
                                                 <Button.Style>
                                                     <Style TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
                                                         <Style.Triggers>
                                                             <DataTrigger Binding="{Binding IsUpdateAvailable}" Value="True">
+                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding IsUpdateDownloaded}" Value="True">
                                                                 <Setter Property="Visibility" Value="Collapsed"/>
                                                             </DataTrigger>
                                                         </Style.Triggers>
@@ -1459,7 +1539,7 @@
                                             <Button Content="Скачать обновление" 
                                                     Command="{Binding DownloadUpdateCommand}" 
                                                     IsEnabled="{Binding IsDownloadingUpdate, Converter={StaticResource InverseBoolConverter}}"
-                                                    Margin="8,0,0,0">
+                                                    Padding="14,8" FontSize="12.5">
                                                 <Button.Style>
                                                     <Style TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
                                                         <Setter Property="Visibility" Value="Collapsed"/>
@@ -1477,31 +1557,46 @@
                                             </Button>
 
                                             <!-- Применить и перезапустить -->
-                                            <Button Content="Перезапустить и обновить" Style="{StaticResource PrimaryButton}" 
+                                            <Button Content="Перезапустить и обновить" Style="{StaticResource SuccessButton}" 
                                                     Command="{Binding ApplyAndRestartCommand}" 
-                                                    Margin="8,0,0,0"
+                                                    Padding="14,8" FontSize="12.5"
                                                     Visibility="{Binding IsUpdateDownloaded, Converter={StaticResource BoolToVisibility}}"/>
-
-                                            <!-- Страница релиза на GitHub -->
-                                            <Button Content="Страница релиза" Style="{StaticResource SecondaryButton}" 
-                                                    Command="{Binding OpenReleaseUrlCommand}" 
-                                                    Margin="8,0,0,0"/>
                                         </StackPanel>
                                     </Grid>
 
-                                    <!-- Прогресс скачивания -->
-                                    <StackPanel Margin="0,14,0,0" Visibility="{Binding IsDownloadingUpdate, Converter={StaticResource BoolToVisibility}}">
-                                        <Grid Margin="0,0,0,4">
-                                            <TextBlock Text="Загрузка дельта-пакета Velopack..." Foreground="#888888" FontSize="11"/>
-                                            <TextBlock Text="{Binding DownloadProgress, StringFormat='{}{0:F0}%'}" Foreground="#38a6ff" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Right"/>
+                                    <!-- Полоса прогресса скачивания -->
+                                    <StackPanel Margin="0,16,0,0" Visibility="{Binding IsDownloadingUpdate, Converter={StaticResource BoolToVisibility}}">
+                                        <Grid Margin="0,0,0,6">
+                                            <TextBlock Text="Загрузка дельта-пакета Velopack..." Foreground="#aaaaaa" FontSize="11.5"/>
+                                            <TextBlock Text="{Binding DownloadProgress, StringFormat='{}{0:F0}%'}" Foreground="#38a6ff" FontSize="11.5" FontWeight="SemiBold" HorizontalAlignment="Right"/>
                                         </Grid>
                                         <ProgressBar Style="{StaticResource UpdateProgressBar}" Value="{Binding DownloadProgress}" Minimum="0" Maximum="100"/>
                                     </StackPanel>
                                 </StackPanel>
                             </Border>
 
-                            <!-- Канал обновлений (Preview / Beta) -->
-                            <TextBlock Text="КАНАЛ ОБНОВЛЕНИЙ" Style="{StaticResource SectionGroupHeader}"/>
+                            <!-- Блок информации о доступном обновлении (когда IsUpdateAvailable) -->
+                            <Border Style="{StaticResource SettingsCard}" Padding="18,16" Margin="0,0,0,12" 
+                                    Visibility="{Binding IsUpdateAvailable, Converter={StaticResource BoolToVisibility}}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center">
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                            <TextBlock Text="Доступна новая версия: " Foreground="#ffffff" FontSize="13" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{Binding NewVersion, StringFormat='v{0}'}" Foreground="#38a6ff" FontSize="13" FontWeight="Bold"/>
+                                        </StackPanel>
+                                        <TextBlock Text="Пакет подготовлен для быстрой бесшовной установки через Velopack" Foreground="#888888" FontSize="11.5"/>
+                                    </StackPanel>
+                                    <Button Grid.Column="1" Content="Список изменений" Style="{StaticResource SecondaryButton}" 
+                                            Command="{Binding OpenReleaseUrlCommand}" VerticalAlignment="Center" Padding="12,7"/>
+                                </Grid>
+                            </Border>
+
+                            <!-- Канал обновлений -->
+                            <TextBlock Text="ПАРАМЕТРЫ КАНАЛА" Style="{StaticResource SectionGroupHeader}"/>
 
                             <Border Style="{StaticResource SettingsCard}">
                                 <Grid>
@@ -1510,8 +1605,8 @@
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <StackPanel Grid.Column="0" Margin="0,0,24,0" VerticalAlignment="Center">
-                                        <TextBlock Text="Получать предварительные версии (Preview/Beta)" FontWeight="Medium" Foreground="#ffffff" FontSize="13"/>
-                                        <TextBlock Text="Участвовать в тестировании ранних сборок и новых возможностей до их официального релиза" Foreground="#888888" FontSize="11" Margin="0,3,0,0" TextWrapping="Wrap"/>
+                                        <TextBlock Text="Получать предварительные версии (Preview / Beta)" FontWeight="Medium" Foreground="#ffffff" FontSize="13"/>
+                                        <TextBlock Text="Участвовать в тестировании ранних сборок с новыми функциями до их официального релиза" Foreground="#888888" FontSize="11" Margin="0,3,0,0" TextWrapping="Wrap"/>
                                     </StackPanel>
                                     <CheckBox Grid.Column="1" IsChecked="{Binding IncludePrereleases}" Style="{StaticResource ToggleSwitch}" VerticalAlignment="Center"/>
                                 </Grid>
@@ -1530,9 +1625,9 @@
                                     <TextBlock Text="© 2026 l1ratch. Распространяется свободно под условиями лицензии MIT." Foreground="#888888" FontSize="11" Margin="0,2,0,8"/>
                                     <Border Background="#121212" BorderBrush="#252525" BorderThickness="1" CornerRadius="6" Padding="12">
                                         <TextBlock TextWrapping="Wrap" FontSize="11" FontFamily="Consolas" Foreground="#aaaaaa" LineHeight="16">
-                                            <Run Text="Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the &quot;Software&quot;), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, subject to the following conditions:"/><LineBreak/><LineBreak/>
-                                            <Run Text="The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software."/><LineBreak/><LineBreak/>
-                                            <Run Text="THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT."/>
+                                             <Run Text="Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the &quot;Software&quot;), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, subject to the following conditions:"/><LineBreak/><LineBreak/>
+                                             <Run Text="The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software."/><LineBreak/><LineBreak/>
+                                             <Run Text="THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT."/>
                                         </TextBlock>
                                     </Border>
                                 </StackPanel>
@@ -1548,6 +1643,15 @@
                                         <Button Content="Условия обслуживания Microsoft" Style="{StaticResource LinkButton}" Command="{Binding OpenUrlCommand}" CommandParameter="https://www.microsoft.com/servicesagreement" Margin="0,0,8,0"/>
                                         <Button Content="Портал Bing" Style="{StaticResource LinkButton}" Command="{Binding OpenUrlCommand}" CommandParameter="https://www.bing.com"/>
                                     </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Архив обоев Bing (Открытый репозиторий GitHub) -->
+                            <Border Style="{StaticResource SettingsCard}">
+                                <StackPanel>
+                                    <TextBlock Text="Архив обоев Bing (Открытый репозиторий v5tech/bing-wallpaper)" FontWeight="SemiBold" Foreground="#ffffff" FontSize="13"/>
+                                    <TextBlock Text="Историческая база изображений Bing за предыдущие дни и месяцы формируется на основе открытого репозитория сообщества v5tech/bing-wallpaper." Foreground="#888888" FontSize="11.5" Margin="0,4,0,10" TextWrapping="Wrap"/>
+                                    <Button Content="Репозиторий архива на GitHub" Style="{StaticResource LinkButton}" Command="{Binding OpenUrlCommand}" CommandParameter="https://github.com/v5tech/bing-wallpaper" HorizontalAlignment="Left"/>
                                 </StackPanel>
                             </Border>
 

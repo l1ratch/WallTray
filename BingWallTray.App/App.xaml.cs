@@ -172,7 +172,8 @@ namespace BingWallTray.App
                 _wallpaperService,
                 _notificationService,
                 _dateTimeProvider,
-                _appState
+                _appState,
+                _wallhavenService
             );
 
             // 5. Инициализация единого MainViewModel
@@ -288,6 +289,11 @@ namespace BingWallTray.App
                 };
             }
 
+            if (_mainViewModel != null && (_mainViewModel.TodayImages == null || _mainViewModel.TodayImages.Count == 0))
+            {
+                _ = _mainViewModel.LoadImagesAsync();
+            }
+
             _mainWindow.Show();
             if (_mainWindow.WindowState == WindowState.Minimized)
             {
@@ -324,9 +330,9 @@ namespace BingWallTray.App
             x /= dpiScaleX;
             y /= dpiScaleY;
 
-            // Ширина меню: 200, Высота: 210 (авторазмер по содержимому)
-            double menuWidth = 200;
-            double menuHeight = 210;
+            // Ширина меню: 220, Высота: ~290 (авторазмер по содержимому)
+            double menuWidth = 220;
+            double menuHeight = 290;
 
             // Центрируем меню по горизонтали относительно курсора
             double left = x - menuWidth / 2;

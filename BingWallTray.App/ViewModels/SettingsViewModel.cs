@@ -386,22 +386,50 @@ namespace BingWallTray.App.ViewModels
         public bool AutoChangeEnabled
         {
             get => _settings.AutoChangeEnabled;
-            set { _settings.AutoChangeEnabled = value; SaveSettings(); OnPropertyChanged(); }
+            set 
+            { 
+                _settings.AutoChangeEnabled = value; 
+                SaveSettings(); 
+                OnPropertyChanged(); 
+                OnPropertyChanged(nameof(IsAutoChangeOptionsEnabled));
+            }
         }
+
+        public bool IsAutoChangeOptionsEnabled => AutoChangeEnabled;
 
         public string AutoChangeSource
         {
             get => string.Equals(_settings.AutoChangeSource, "NewBing", StringComparison.OrdinalIgnoreCase) ? "TodayBing" : _settings.AutoChangeSource;
-            set { _settings.AutoChangeSource = value; SaveSettings(); OnPropertyChanged(); }
+            set 
+            { 
+                _settings.AutoChangeSource = value; 
+                SaveSettings(); 
+                OnPropertyChanged(); 
+                OnPropertyChanged(nameof(IsTodayBingSelected));
+                OnPropertyChanged(nameof(IsPeriodicSourceSelected));
+                OnPropertyChanged(nameof(IsIntervalTriggerVisible));
+            }
         }
+
+        public bool IsTodayBingSelected => string.Equals(AutoChangeSource, "TodayBing", StringComparison.OrdinalIgnoreCase) || string.Equals(AutoChangeSource, "NewBing", StringComparison.OrdinalIgnoreCase);
+
+        public bool IsPeriodicSourceSelected => !IsTodayBingSelected;
+
+        public bool IsWallhavenAutoChangeAvailable => EnableWallhaven;
 
         public string AutoChangeTrigger
         {
             get => _settings.AutoChangeTrigger;
-            set { _settings.AutoChangeTrigger = value; SaveSettings(); OnPropertyChanged(); OnPropertyChanged(nameof(IsIntervalTriggerVisible)); }
+            set 
+            { 
+                _settings.AutoChangeTrigger = value; 
+                SaveSettings(); 
+                OnPropertyChanged(); 
+                OnPropertyChanged(nameof(IsIntervalTriggerVisible)); 
+            }
         }
 
-        public bool IsIntervalTriggerVisible => AutoChangeTrigger == "Interval" || AutoChangeTrigger == "Both";
+        public bool IsIntervalTriggerVisible => IsPeriodicSourceSelected && (AutoChangeTrigger == "Interval" || AutoChangeTrigger == "Both");
 
         private static readonly string[] PresetIntervals = { "15m", "30m", "1h", "2h", "6h", "12h", "24h" };
 

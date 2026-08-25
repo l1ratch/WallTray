@@ -418,7 +418,6 @@ namespace BingWallTray.App.ViewModels
                     SaveSettings();
                     OnPropertyChanged();
                     _schedulerService.UpdateInterval();
-                    _notificationService.ShowInfo("Режим изменен", value ? "Автопроверка приостановлена." : "Автопроверка возобновлена.");
                 }
             }
         }
@@ -433,7 +432,6 @@ namespace BingWallTray.App.ViewModels
                     Settings.Locked = value;
                     SaveSettings();
                     OnPropertyChanged();
-                    _notificationService.ShowInfo("Режим изменен", value ? "Текущие обои зафиксированы." : "Фиксация обоев отключена.");
                 }
             }
         }
@@ -755,6 +753,34 @@ namespace BingWallTray.App.ViewModels
             set => SetProperty(ref _isUpdateAvailable, value);
         }
 
+        private bool _isDownloadingUpdate;
+        public bool IsDownloadingUpdate
+        {
+            get => _isDownloadingUpdate;
+            set => SetProperty(ref _isDownloadingUpdate, value);
+        }
+
+        private double _downloadProgress;
+        public double DownloadProgress
+        {
+            get => _downloadProgress;
+            set => SetProperty(ref _downloadProgress, value);
+        }
+
+        private bool _isUpdateDownloaded;
+        public bool IsUpdateDownloaded
+        {
+            get => _isUpdateDownloaded;
+            set => SetProperty(ref _isUpdateDownloaded, value);
+        }
+
+        private string _newVersion = string.Empty;
+        public string NewVersion
+        {
+            get => _newVersion;
+            set => SetProperty(ref _newVersion, value);
+        }
+
         public string ReleaseUrl
         {
             get => _releaseUrl;
@@ -772,7 +798,10 @@ namespace BingWallTray.App.ViewModels
         public ICommand OpenFolderCommand { get; }
         public ICommand ExitCommand { get; }
         public ICommand CheckUpdateCommand { get; }
+        public ICommand DownloadUpdateCommand { get; }
+        public ICommand ApplyUpdateCommand { get; }
         public ICommand OpenReleaseUrlCommand { get; }
+        public ICommand OpenMainWindowCommand { get; }
         public ICommand RefreshImagesCommand { get; }
         
         // Команды навигации
@@ -843,6 +872,13 @@ namespace BingWallTray.App.ViewModels
                     OnPropertyChanged(nameof(StatusBadgeIcon));
                     OnPropertyChanged(nameof(StatusBadgeForeground));
                 }
+                else if (e.PropertyName == nameof(AppState.TodayImages))
+                {
+                    System.Windows.Application.Current?.Dispatcher?.Invoke(() =>
+                    {
+                        _ = LoadImagesAsync(forceReload: true);
+                    });
+                }
             };
             _bingService = bingService;
             _wallhavenService = wallhavenService;
@@ -858,6 +894,21 @@ namespace BingWallTray.App.ViewModels
 
             AppVersion = informationalVersion ?? "26.8.0";
 
+            _settingsService.SettingsChanged += (s, newSettings) =>
+            {
+                System.Windows.Application.Current?.Dispatcher?.Invoke(() =>
+                {
+                    OnPropertyChanged(nameof(Settings));
+                    OnPropertyChanged(nameof(IsMultipleSourcesEnabled));
+                    OnPropertyChanged(nameof(ShowSourceSelector));
+                    OnPropertyChanged(nameof(EnableWallhaven));
+                    OnPropertyChanged(nameof(BingNavTabTitle));
+                    OnPropertyChanged(nameof(EnableHistoricalArchive));
+                    _schedulerService.UpdateInterval();
+                    UpdateDisplayedImages();
+                });
+            };
+
             SetWallpaperCommand = new RelayCommand(async () => await OnSetWallpaperAsync(), () => IsImageSelected);
             ToggleFavoriteCommand = new RelayCommand(async () => await OnToggleFavoriteAsync(), () => IsImageSelected);
             CheckNowCommand = new RelayCommand(async () => await OnCheckNowAsync());
@@ -869,7 +920,17 @@ namespace BingWallTray.App.ViewModels
             ClearLogsCommand = new RelayCommand(async () => await OnClearLogsAsync());
             ExitCommand = new RelayCommand(OnExit);
             CheckUpdateCommand = new RelayCommand(async () => await CheckForUpdatesAsync());
+            DownloadUpdateCommand = new RelayCommand(async () => await DownloadUpdateAsync());
+            ApplyUpdateCommand = new RelayCommand(ApplyUpdate);
             OpenReleaseUrlCommand = new RelayCommand(OnOpenReleaseUrl, () => !string.IsNullOrEmpty(ReleaseUrl));
+            OpenMainWindowCommand = new RelayCommand(() =>
+            {
+                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                {
+                    var app = (App)System.Windows.Application.Current;
+                    app.ShowMainWindow();
+                });
+            });
             RefreshImagesCommand = new RelayCommand(async () => await LoadImagesAsync());
 
             SwitchSourceCommand = new RelayCommand<string>(OnSwitchSource);
@@ -915,6 +976,9 @@ namespace BingWallTray.App.ViewModels
                 _selectedIntervalPreset = "Custom";
                 _customIntervalString = savedInterval;
             }
+
+            // Мгновенная загрузка изображений при создании ViewModel (из кэша в памяти/на диске)
+            _ = LoadImagesAsync();
         }
 
         private void SaveSettings()
@@ -1248,7 +1312,6 @@ namespace BingWallTray.App.ViewModels
                     OnPropertyChanged(nameof(IsSelectedImageApplied));
                     OnPropertyChanged(nameof(IsSelectedDetailsImageApplied));
 
-                    _notificationService.ShowInfo("Обои изменены", SelectedImage.Title);
                     await _historyService.CleanOldNonFavoriteImagesAsync(Settings.DownloadFolder, localPath);
                 }
                 else
@@ -1288,7 +1351,6 @@ namespace BingWallTray.App.ViewModels
                 await _historyService.RemoveFavoriteAsync(id);
                 _favoriteIds.Remove(id);
                 img.IsFavorite = false;
-                _notificationService.ShowInfo("Избранное", "Изображение удалено из избранного.");
             }
             else
             {
@@ -1314,7 +1376,6 @@ namespace BingWallTray.App.ViewModels
                     await _historyService.AddOrUpdateFavoriteAsync(item);
                     _favoriteIds.Add(id);
                     img.IsFavorite = true;
-                    _notificationService.ShowInfo("Избранное", "Изображение добавлено в избранное.");
                 }
                 catch (Exception ex)
                 {
@@ -1476,7 +1537,6 @@ namespace BingWallTray.App.ViewModels
                     OnPropertyChanged(nameof(IsSelectedImageApplied));
                     OnPropertyChanged(nameof(IsSelectedDetailsImageApplied));
 
-                    _notificationService.ShowInfo("Обои изменены", item.Title);
                     await _historyService.CleanOldNonFavoriteImagesAsync(Settings.DownloadFolder, item.LocalPath);
                 }
                 else
@@ -1517,8 +1577,6 @@ namespace BingWallTray.App.ViewModels
                     UpdateSelectedImageFavoriteStatus();
                 }
             }
-
-            _notificationService.ShowInfo("Избранное", "Изображение удалено из избранного.");
         }
 
         private void OnOpenFavoriteFolder(WallpaperHistoryItem item)
@@ -1589,7 +1647,7 @@ namespace BingWallTray.App.ViewModels
         {
             await _historyService.ClearCacheAsync();
             await LoadImagesAsync();
-            _notificationService.ShowInfo("Очистка кэша", "Все избранные файлы и кэш успешно удалены.");
+            _notificationService.ShowInfo("Очистка кэша", "Кэш обоев очищен. Все элементы избранного сохранены.");
         }
 
         private async Task OnClearLogsAsync()
@@ -1647,10 +1705,10 @@ namespace BingWallTray.App.ViewModels
 
         public async Task CheckForUpdatesAsync()
         {
-            if (IsCheckingUpdate) return;
+            if (IsCheckingUpdate || IsDownloadingUpdate) return;
 
             IsCheckingUpdate = true;
-            UpdateStatusText = "Поиск...";
+            UpdateStatusText = "Проверка наличия обновлений...";
             OnPropertyChanged(nameof(IsCheckingUpdate));
 
             try
@@ -1659,24 +1717,68 @@ namespace BingWallTray.App.ViewModels
                 if (result.IsUpdateAvailable)
                 {
                     IsUpdateAvailable = true;
+                    NewVersion = result.NewVersion;
                     ReleaseUrl = result.ReleaseUrl;
-                    UpdateStatusText = $"Скачать v{result.NewVersion}";
+                    UpdateStatusText = $"Доступна новая версия v{result.NewVersion}!";
                 }
                 else
                 {
                     IsUpdateAvailable = false;
-                    UpdateStatusText = "Обновлений нет";
+                    IsUpdateDownloaded = false;
+                    UpdateStatusText = "У вас установлена последняя версия.";
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                UpdateStatusText = "Ошибка сети";
+                UpdateStatusText = "Ошибка проверки обновлений";
+                _logger.LogError("Ошибка при проверке обновлений в MainViewModel", ex);
             }
             finally
             {
                 IsCheckingUpdate = false;
                 OnPropertyChanged(nameof(IsCheckingUpdate));
             }
+        }
+
+        public async Task DownloadUpdateAsync()
+        {
+            if (IsDownloadingUpdate || !IsUpdateAvailable) return;
+            IsDownloadingUpdate = true;
+            DownloadProgress = 0.0;
+            UpdateStatusText = "Скачивание обновления...";
+
+            try
+            {
+                bool success = await _updateService.DownloadUpdateAsync(p =>
+                {
+                    DownloadProgress = p * 100.0;
+                });
+
+                if (success)
+                {
+                    IsUpdateDownloaded = true;
+                    UpdateStatusText = "Обновление готово! Нажмите «Перезапустить».";
+                    _notificationService.ShowInfo("Обновление скачано", "Новая версия готова к установке.");
+                }
+                else
+                {
+                    UpdateStatusText = "Ошибка скачивания пакета обновления.";
+                }
+            }
+            catch (Exception ex)
+            {
+                UpdateStatusText = $"Сбой при загрузке: {ex.Message}";
+                _logger.LogError("Сбой при скачивании обновления во VM", ex);
+            }
+            finally
+            {
+                IsDownloadingUpdate = false;
+            }
+        }
+
+        public void ApplyUpdate()
+        {
+            _updateService.ApplyUpdateAndRestart();
         }
 
         private void OnOpenReleaseUrl()

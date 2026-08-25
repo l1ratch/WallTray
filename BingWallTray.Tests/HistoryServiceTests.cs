@@ -58,6 +58,7 @@ namespace BingWallTray.Tests
             public Task SaveAsync(AppSettings settings) => Task.CompletedTask;
 #pragma warning disable 0067
             public event EventHandler<string>? SettingsCorrupted;
+            public event EventHandler<AppSettings>? SettingsChanged;
 #pragma warning restore 0067
         }
 
@@ -208,6 +209,37 @@ namespace BingWallTray.Tests
             Assert.True(File.Exists(files[2]));  // second newest
             Assert.False(File.Exists(files[1])); // deleted
             Assert.False(File.Exists(files[0])); // deleted (oldest)
+        }
+
+        [Fact]
+        public async Task ClearCacheAsync_DeletesNonFavorites_PreservesFavorites()
+        {
+            // Arrange
+            var service = new TestHistoryService(_testFolder, _favoritesPath, _logger, _dateTimeProvider);
+
+            string favFile = Path.Combine(_testFolder, "favorite.jpg");
+            string normalFile = Path.Combine(_testFolder, "normal.jpg");
+            await File.WriteAllTextAsync(favFile, "favorite image content");
+            await File.WriteAllTextAsync(normalFile, "normal image content");
+
+            var favItem = new WallpaperHistoryItem { Id = "fav1", Title = "Favorite 1", LocalPath = favFile, IsFavorite = true };
+            var normalItem = new WallpaperHistoryItem { Id = "norm1", Title = "Normal 1", LocalPath = normalFile, IsFavorite = false };
+
+            await service.AddOrUpdateFavoriteAsync(favItem);
+            // Save normalItem via cache service directly or AddOrUpdate
+            var cacheField = typeof(HistoryService).GetField("_cacheService", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var cacheService = (IWallpaperCacheService)cacheField!.GetValue(service)!;
+            await cacheService.AddOrUpdateAsync(new WallpaperCacheItem { Id = "norm1", Title = "Normal 1", LocalPath = normalFile, IsFavorite = false });
+
+            // Act
+            await service.ClearCacheAsync();
+
+            // Assert
+            var favorites = await service.GetFavoritesAsync();
+            Assert.Single(favorites);
+            Assert.Equal("fav1", favorites[0].Id);
+            Assert.True(File.Exists(favFile)); // Файл избранного сохранен!
+            Assert.False(File.Exists(normalFile)); // Обычный кэш удален!
         }
     }
 }

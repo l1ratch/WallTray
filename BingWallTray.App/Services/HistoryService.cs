@@ -252,24 +252,70 @@ namespace BingWallTray.App.Services
             await EnsureMigratedAsync();
             var all = await _cacheService.GetAllAsync();
 
-            // Удаляем файлы с диска
+            // Сохраняем пути избранных обоев и текущих активных обоев от удаления
+            var protectedPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var fav in all.Where(x => x.IsFavorite && !string.IsNullOrEmpty(x.LocalPath)))
+            {
+                try
+                {
+                    protectedPaths.Add(Path.GetFullPath(fav.LocalPath));
+                }
+                catch { }
+            }
+
+            var settings = _settingsService.CurrentSettings;
+            if (!string.IsNullOrEmpty(settings.LastAppliedImageId))
+            {
+                var applied = all.FirstOrDefault(x => x.Id == settings.LastAppliedImageId);
+                if (applied != null && !string.IsNullOrEmpty(applied.LocalPath))
+                {
+                    try
+                    {
+                        protectedPaths.Add(Path.GetFullPath(applied.LocalPath));
+                    }
+                    catch { }
+                }
+            }
+
+            // Удаляем только файлы и записи, которые НЕ находятся в избранном
             foreach (var item in all)
             {
+                if (item.IsFavorite)
+                {
+                    // Избранные записи строго сохраняются!
+                    continue;
+                }
+
                 if (!string.IsNullOrEmpty(item.LocalPath) && File.Exists(item.LocalPath))
                 {
                     try
                     {
-                        File.Delete(item.LocalPath);
+                        string full = Path.GetFullPath(item.LocalPath);
+                        if (!protectedPaths.Contains(full))
+                        {
+                            File.Delete(item.LocalPath);
+                        }
                     }
                     catch (Exception ex)
                     {
                         _logger.LogWarning($"Ошибка очистки кэша для файла {item.LocalPath}: {ex.Message}");
                     }
                 }
+
+                await _cacheService.RemoveAsync(item.Id);
             }
 
-            await _cacheService.ClearAllAsync();
-            _logger.LogInfo("Все файлы избранного и список очищены.");
+            // Очищаем временный файл кэша дня
+            try
+            {
+                if (File.Exists(AppPaths.TodayCacheFilePath))
+                {
+                    File.Delete(AppPaths.TodayCacheFilePath);
+                }
+            }
+            catch { }
+
+            _logger.LogInfo("Кэш обоев успешно очищен. Все элементы избранного сохранены.");
         }
 
         public async Task<int> GetTotalCacheCountAsync()

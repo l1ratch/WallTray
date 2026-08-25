@@ -40,9 +40,12 @@ namespace BingWallTray.App.Services
 
         private void TriggerNotification(string title, string message, ToolTipIcon icon)
         {
-            // Полностью подавляем всплывающие уведомления в Windows по просьбе пользователя.
-            // Оставляем только запись в лог-файле для истории работы приложения.
             _logger.LogInfo($"[Уведомление] {title} - {message}");
+
+            if (_settingsService.CurrentSettings.ShowNotifications)
+            {
+                NotificationRequested?.Invoke(this, new NotificationRequestedEventArgs(title, message, icon));
+            }
         }
 
         public void ShowInfo(string title, string message)
