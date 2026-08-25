@@ -101,10 +101,19 @@ namespace BingWallTray.App.Services
             try
             {
                 var source = new GithubSource($"https://github.com/{repoOwner}/{repoName}", null, includePrereleases);
-                _updateManager = new UpdateManager(source);
+
+                try
+                {
+                    _updateManager = new UpdateManager(source);
+                }
+                catch (Exception veloInitEx)
+                {
+                    _logger.LogWarning($"[Velopack] Локатор не найден ({veloInitEx.Message}). Приложение запущено в автономном режиме Portable/Dev.");
+                    _updateManager = null;
+                }
 
                 // Если приложение установлено и управляется через Velopack
-                if (_updateManager.IsInstalled)
+                if (_updateManager != null && _updateManager.IsInstalled)
                 {
                     _latestUpdateInfo = await _updateManager.CheckForUpdatesAsync();
 
@@ -119,15 +128,17 @@ namespace BingWallTray.App.Services
                     }
                     else
                     {
+                        result.NewVersion = result.CurrentVersion;
+                        NewVersion = result.CurrentVersion;
                         SetStatus(UpdateStatus.UpToDate, "У вас установлена последняя версия");
-                        _logger.LogInfo("[Velopack] Установлена актуальная версия.");
+                        _logger.LogInfo($"[Velopack] Установлена актуальная версия {result.CurrentVersion}.");
                         return result;
                     }
                 }
                 else
                 {
-                    // Режим разработки или запуск standalone без установщика Velopack -> фоллбэк на GitHub API
-                    _logger.LogInfo("[Velopack] Приложение запущено в автономном режиме (Dev/Portable), используем GitHub Releases API.");
+                    // Режим разработки или запуск standalone без установщика Velopack -> фоллбэк на прямой манифест и GitHub Releases API
+                    _logger.LogInfo("[Velopack] Приложение запущено в автономном режиме (Dev/Portable), используем прямой поиск обновлений.");
                     return await CheckViaGitHubApiAsync(repoOwner, repoName, includePrereleases, result);
                 }
             }
@@ -186,60 +197,145 @@ namespace BingWallTray.App.Services
 
         private async Task<UpdateCheckResult> CheckViaGitHubApiAsync(string repoOwner, string repoName, bool includePrereleases, UpdateCheckResult result)
         {
-            string url = includePrereleases 
-                ? $"https://api.github.com/repos/{repoOwner}/{repoName}/releases"
-                : $"https://api.github.com/repos/{repoOwner}/{repoName}/releases/latest";
+            var currentVer = Assembly.GetExecutingAssembly().GetName().Version;
 
-            var response = await _httpClient.GetAsync(url);
-            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            // 1. Быстрая прямая проверка releases.win.json через GitHub Releases CDN (без ограничений API)
+            if (!includePrereleases)
             {
-                result.ErrorMessage = "Репозиторий или релизы не найдены.";
-                SetStatus(UpdateStatus.UpToDate, result.ErrorMessage);
-                return result;
-            }
-
-            response.EnsureSuccessStatusCode();
-            string json = await response.Content.ReadAsStringAsync();
-
-            GitHubReleaseInfo? releaseInfo = null;
-            if (includePrereleases)
-            {
-                var releases = JsonSerializer.Deserialize<List<GitHubReleaseInfo>>(json);
-                releaseInfo = releases?.FirstOrDefault();
-            }
-            else
-            {
-                releaseInfo = JsonSerializer.Deserialize<GitHubReleaseInfo>(json);
-            }
-
-            if (releaseInfo == null || string.IsNullOrEmpty(releaseInfo.TagName))
-            {
-                result.ErrorMessage = "Не удалось получить информацию о релизе.";
-                SetStatus(UpdateStatus.Error, result.ErrorMessage);
-                return result;
-            }
-
-            string tag = releaseInfo.TagName.TrimStart('v', 'V');
-            string versionPart = tag.Contains('-') ? tag.Split('-')[0] : tag;
-            if (Version.TryParse(versionPart, out Version? latestVer))
-            {
-                result.NewVersion = latestVer.ToString(3);
-                result.ReleaseUrl = releaseInfo.HtmlUrl;
-                NewVersion = result.NewVersion;
-
-                var currentVer = Assembly.GetExecutingAssembly().GetName().Version;
-                if (currentVer != null && latestVer > currentVer)
+                try
                 {
-                    result.IsUpdateAvailable = true;
-                    SetStatus(UpdateStatus.UpdateAvailable, $"Доступна версия {NewVersion}");
+                    string directManifestUrl = $"https://github.com/{repoOwner}/{repoName}/releases/latest/download/releases.win.json";
+                    using var manifestRequest = new HttpRequestMessage(HttpMethod.Get, directManifestUrl);
+                    manifestRequest.Headers.Add("Cache-Control", "no-cache");
+                    var manifestResponse = await _httpClient.SendAsync(manifestRequest);
+
+                    if (manifestResponse.IsSuccessStatusCode)
+                    {
+                        string manifestJson = await manifestResponse.Content.ReadAsStringAsync();
+                        var manifest = JsonSerializer.Deserialize<VelopackFeed>(manifestJson);
+                        var latestAsset = manifest?.Assets?.FirstOrDefault();
+                        if (latestAsset != null && !string.IsNullOrWhiteSpace(latestAsset.Version))
+                        {
+                            string verStr = latestAsset.Version.TrimStart('v', 'V');
+                            if (Version.TryParse(verStr.Split('-')[0], out Version? parsedVer))
+                            {
+                                result.NewVersion = parsedVer.ToString(3);
+                                result.ReleaseUrl = $"https://github.com/{repoOwner}/{repoName}/releases/tag/{latestAsset.Version}";
+                                result.DownloadUrl = $"https://github.com/{repoOwner}/{repoName}/releases/download/{latestAsset.Version}/WallTray-win-Setup.exe";
+                                NewVersion = result.NewVersion;
+
+                                if (currentVer != null && parsedVer > currentVer)
+                                {
+                                    result.IsUpdateAvailable = true;
+                                    SetStatus(UpdateStatus.UpdateAvailable, $"Доступна версия {NewVersion}");
+                                    _logger.LogInfo($"[CDN] Найдено обновление: {result.NewVersion} (Текущая: {currentVer.ToString(3)})");
+                                }
+                                else
+                                {
+                                    SetStatus(UpdateStatus.UpToDate, "У вас установлена последняя версия");
+                                    _logger.LogInfo($"[CDN] Установлена актуальная версия {currentVer?.ToString(3)}.");
+                                }
+
+                                return result;
+                            }
+                        }
+                    }
+                }
+                catch (Exception cdnEx)
+                {
+                    _logger.LogWarning($"Проверка через прямой CDN-манифест: {cdnEx.Message}. Переход к GitHub API.");
+                }
+            }
+
+            // 2. Фоллбэк на официальный GitHub REST API
+            try
+            {
+                string url = includePrereleases 
+                    ? $"https://api.github.com/repos/{repoOwner}/{repoName}/releases"
+                    : $"https://api.github.com/repos/{repoOwner}/{repoName}/releases/latest";
+
+                using var request = new HttpRequestMessage(HttpMethod.Get, url);
+                request.Headers.Add("Accept", "application/vnd.github.v3+json");
+                request.Headers.Add("Cache-Control", "no-cache");
+
+                var response = await _httpClient.SendAsync(request);
+                if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    result.ErrorMessage = "Репозиторий или релизы не найдены.";
+                    SetStatus(UpdateStatus.UpToDate, result.ErrorMessage);
+                    return result;
+                }
+
+                response.EnsureSuccessStatusCode();
+                string json = await response.Content.ReadAsStringAsync();
+
+                GitHubReleaseInfo? releaseInfo = null;
+                if (includePrereleases)
+                {
+                    var releases = JsonSerializer.Deserialize<List<GitHubReleaseInfo>>(json);
+                    releaseInfo = releases?.FirstOrDefault();
                 }
                 else
                 {
-                    SetStatus(UpdateStatus.UpToDate, "У вас установлена последняя версия");
+                    releaseInfo = JsonSerializer.Deserialize<GitHubReleaseInfo>(json);
                 }
+
+                if (releaseInfo == null || string.IsNullOrEmpty(releaseInfo.TagName))
+                {
+                    result.ErrorMessage = "Не удалось получить информацию о релизе.";
+                    SetStatus(UpdateStatus.Error, result.ErrorMessage);
+                    return result;
+                }
+
+                string tag = releaseInfo.TagName.TrimStart('v', 'V');
+                string versionPart = tag.Contains('-') ? tag.Split('-')[0] : tag;
+                if (Version.TryParse(versionPart, out Version? latestVer))
+                {
+                    result.NewVersion = latestVer.ToString(3);
+                    result.ReleaseUrl = releaseInfo.HtmlUrl;
+                    var setupAsset = releaseInfo.Assets?.FirstOrDefault(a => a.Name.EndsWith(".exe", StringComparison.OrdinalIgnoreCase));
+                    result.DownloadUrl = setupAsset?.BrowserDownloadUrl ?? releaseInfo.HtmlUrl;
+                    NewVersion = result.NewVersion;
+
+                    if (currentVer != null && latestVer > currentVer)
+                    {
+                        result.IsUpdateAvailable = true;
+                        SetStatus(UpdateStatus.UpdateAvailable, $"Доступна версия {NewVersion}");
+                        _logger.LogInfo($"[GitHub API] Найдено обновление: {result.NewVersion} (Текущая: {currentVer.ToString(3)})");
+                    }
+                    else
+                    {
+                        SetStatus(UpdateStatus.UpToDate, "У вас установлена последняя версия");
+                        _logger.LogInfo($"[GitHub API] Установлена актуальная версия {currentVer?.ToString(3)}.");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                result.ErrorMessage = $"Ошибка проверки через GitHub API: {ex.Message}";
+                SetStatus(UpdateStatus.Error, result.ErrorMessage);
+                _logger.LogError("Ошибка GitHub Releases API", ex);
             }
 
             return result;
+        }
+
+        private class VelopackFeed
+        {
+            [JsonPropertyName("Assets")]
+            public List<VelopackFeedAsset>? Assets { get; set; }
+        }
+
+        private class VelopackFeedAsset
+        {
+            [JsonPropertyName("PackageId")]
+            public string? PackageId { get; set; }
+
+            [JsonPropertyName("Version")]
+            public string? Version { get; set; }
+
+            [JsonPropertyName("FileName")]
+            public string? FileName { get; set; }
         }
 
         private class GitHubReleaseInfo

@@ -49,24 +49,35 @@ namespace BingWallTray.App.Services
                     return;
                 }
 
-                string legacyDir = AppPaths.LegacyRoamingAppDataFolder;
-                if (Directory.Exists(legacyDir) && !File.Exists(_settingsFilePath))
+                string[] legacyDirs = new[]
                 {
-                    AppPaths.EnsureDirectoryExists(_appDataFolder);
-                    foreach (var file in Directory.GetFiles(legacyDir, "*.*"))
+                    AppPaths.LegacyRoamingAppDataFolder,
+                    AppPaths.LegacyRoamingBingWallFolder,
+                    AppPaths.LegacyLocalBingWallFolder
+                };
+
+                foreach (var legacyDir in legacyDirs)
+                {
+                    if (Directory.Exists(legacyDir) && !string.Equals(legacyDir, _appDataFolder, StringComparison.OrdinalIgnoreCase))
                     {
-                        string dest = Path.Combine(_appDataFolder, Path.GetFileName(file));
-                        if (!File.Exists(dest))
+                        AppPaths.EnsureDirectoryExists(_appDataFolder);
+                        foreach (var file in Directory.GetFiles(legacyDir, "*.*"))
                         {
-                            File.Copy(file, dest, true);
+                            string fileName = Path.GetFileName(file);
+                            string dest = Path.Combine(_appDataFolder, fileName);
+
+                            if (!File.Exists(dest))
+                            {
+                                File.Copy(file, dest, true);
+                                _logger.LogInfo($"Миграция файла '{fileName}' из '{legacyDir}' в '{_appDataFolder}'.");
+                            }
                         }
                     }
-                    _logger.LogInfo("Выполнена миграция данных приложения из Roaming AppData в LocalAppData.");
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogWarning($"Ошибка при миграции старых данных из Roaming AppData: {ex.Message}");
+                _logger.LogWarning($"Ошибка при миграции старых данных: {ex.Message}");
             }
         }
 
