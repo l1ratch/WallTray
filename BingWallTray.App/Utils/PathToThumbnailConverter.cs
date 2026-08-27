@@ -10,13 +10,24 @@ namespace BingWallTray.App.Utils
     // cutting per-item memory/CPU cost when the favorites list is realized.
     public class PathToThumbnailConverter : IValueConverter
     {
-        private const int DecodePixelWidth = 220;
+        private const int DefaultDecodePixelWidth = 260;
         private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, ImageSource> _cache = new();
+
+        public static void ClearCache()
+        {
+            _cache.Clear();
+        }
 
         public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             string? path = value as string;
             if (string.IsNullOrWhiteSpace(path)) return null;
+
+            int decodeWidth = DefaultDecodePixelWidth;
+            if (parameter is string paramStr && int.TryParse(paramStr, out int customWidth) && customWidth > 50)
+            {
+                decodeWidth = customWidth;
+            }
 
             if (path.Contains(@"\OneDrive\", StringComparison.OrdinalIgnoreCase) ||
                 path.Contains(@"\Pictures\", StringComparison.OrdinalIgnoreCase) ||
@@ -29,7 +40,8 @@ namespace BingWallTray.App.Utils
                 }
             }
 
-            if (_cache.TryGetValue(path, out var cached))
+            string cacheKey = $"{path}_{decodeWidth}";
+            if (_cache.TryGetValue(cacheKey, out var cached))
             {
                 return cached;
             }
@@ -46,13 +58,13 @@ namespace BingWallTray.App.Utils
                 {
                     bitmap.UriSource = new Uri(path, UriKind.RelativeOrAbsolute);
                 }
-                bitmap.DecodePixelWidth = DecodePixelWidth;
+                bitmap.DecodePixelWidth = decodeWidth;
                 bitmap.CacheOption = BitmapCacheOption.OnLoad;
                 bitmap.CreateOptions = BitmapCreateOptions.DelayCreation;
                 bitmap.EndInit();
                 bitmap.Freeze();
 
-                _cache[path] = bitmap;
+                _cache[cacheKey] = bitmap;
                 return bitmap;
             }
             catch

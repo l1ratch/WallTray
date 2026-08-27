@@ -499,6 +499,7 @@ namespace BingWallTray.App.Services
             {
                 _appState.IsChecking = false;
                 _semaphore.Release();
+                BingWallTray.App.Utils.MemoryOptimizer.TrimWorkingSet();
             }
         }
     }

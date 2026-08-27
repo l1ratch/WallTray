@@ -836,8 +836,8 @@
                                                           CommandParameter="{Binding}"/>
                                         </Border.InputBindings>
                                         <Grid>
-                                            <!-- Изображение -->
-                                            <Image Source="{Binding ThumbnailUrl}" Stretch="UniformToFill"/>
+                                            <!-- Изображение с легким декодированием превью для экономии RAM/CPU -->
+                                            <Image Source="{Binding ThumbnailUrl, Converter={StaticResource PathToThumbnailConverter}}" Stretch="UniformToFill"/>
 
                                             <!-- Галочка примененных обоев (Несъемная, в левом верхнем углу) -->
                                             <Border Background="#2e7d32" CornerRadius="0,0,6,0" HorizontalAlignment="Left" VerticalAlignment="Top" Padding="6,4"
@@ -1337,7 +1337,7 @@
                                 <!-- Крупное превью с закруглениями -->
                                 <Border Height="300" Background="#121212" CornerRadius="8" ClipToBounds="True" BorderBrush="#2d2d2d" BorderThickness="1">
                                     <Grid>
-                                        <Image Source="{Binding SelectedDetailsImage.PreviewUrl}" Stretch="UniformToFill" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <Image Source="{Binding SelectedDetailsImage.PreviewUrl, Converter={StaticResource PathToThumbnailConverter}, ConverterParameter=520}" Stretch="UniformToFill" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         
                                         <!-- Темный градиент внизу для лучшей читаемости -->
                                         <Border VerticalAlignment="Bottom" Height="80" CornerRadius="0,0,8,8">

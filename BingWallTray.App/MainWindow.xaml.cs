@@ -175,6 +175,7 @@ namespace BingWallTray.App
             try
             {
                 this.Hide();
+                BingWallTray.App.Utils.MemoryOptimizer.TrimWorkingSet();
             }
             catch { }
         }
@@ -195,6 +196,7 @@ namespace BingWallTray.App
             {
                 e.Cancel = true;
                 this.Hide();
+                BingWallTray.App.Utils.MemoryOptimizer.TrimWorkingSet();
             }
             else
             {

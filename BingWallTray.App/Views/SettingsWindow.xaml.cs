@@ -38,5 +38,11 @@ namespace BingWallTray.App.Views
         {
             Close();
         }
+
+        protected override void OnClosed(System.EventArgs e)
+        {
+            base.OnClosed(e);
+            BingWallTray.App.Utils.MemoryOptimizer.TrimWorkingSet();
+        }
     }
 }
