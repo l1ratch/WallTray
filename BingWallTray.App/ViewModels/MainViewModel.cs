@@ -1301,7 +1301,7 @@ namespace BingWallTray.App.ViewModels
                 {
                     string id = GetImageId(SelectedImage);
                     Settings.LastAppliedImageId = id;
-                    Settings.LastAutoAppliedDate = TodayImages.FirstOrDefault()?.StartDate ?? string.Empty;
+                    // LastAutoAppliedDate не пишем: ручная установка не делает день «обработанным» автосменой.
                     SaveSettings();
 
                     // Сохраняем информацию о применении обоев в базу кэша
@@ -1518,7 +1518,7 @@ namespace BingWallTray.App.ViewModels
                 if (success)
                 {
                     Settings.LastAppliedImageId = item.Id;
-                    Settings.LastAutoAppliedDate = TodayImages.FirstOrDefault()?.StartDate ?? string.Empty;
+                    // LastAutoAppliedDate не пишем: ручная установка не делает день «обработанным» автосменой.
                     SaveSettings();
 
                     // Сохраняем информацию о применении обоев в базу кэша

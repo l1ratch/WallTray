@@ -202,18 +202,14 @@ namespace BingWallTray.App.Services
                 _logger.LogInfo($"Начало автопроверки обоев. Ручной запуск: {isManual}");
                 var settings = _settingsService.CurrentSettings;
 
-                // 1. Проверяем, есть ли сегодняшняя подборка в кэше (только для автоматических проверок без forceReload)
-                if (!isManual && !forceReload && _appState.TodayImages != null && _appState.TodayImages.Count > 0)
-                {
-                    var firstImg = _appState.TodayImages.First();
-                    string todayStr = _dateTimeProvider.Today.ToString("yyyyMMdd");
-                    if (firstImg.StartDate == todayStr)
-                    {
-                        _logger.LogInfo("Подборка обоев за сегодня уже присутствует в кэше. Пропуск сетевого запроса.");
-                        _appState.StatusMessage = "Обои актуальны.";
-                        return;
-                    }
-                }
+                // 1. Свежий кэш экономит сетевой запрос, но НЕ отменяет проверку автосмены:
+                //    кэш могли наполнить пути, которые не устанавливали обои (стартовая проверка
+                //    при триггере "Интервал", режим фиксации, ручное обновление галереи).
+                //    ponytail: свежесть определяется совпадением с локальной датой; если Bing выложит
+                //    вторую подборку за тот же день, она подхватится первым тиком с forceReload или со следующим днём.
+                bool reuseCache = !isManual && !forceReload
+                    && _appState.TodayImages != null && _appState.TodayImages.Count > 0
+                    && _appState.TodayImages.First().StartDate == _dateTimeProvider.Today.ToString("yyyyMMdd");
 
                 // 2. Уважение режима паузы при автоматической проверке
                 if (settings.Paused && !isManual)
@@ -231,30 +227,38 @@ namespace BingWallTray.App.Services
                 int delayMs = 15000; // 15 секунд между попытками
                 IReadOnlyList<BingImage>? latestImages = null;
 
-                while (true)
+                if (reuseCache)
                 {
-                    latestImages = await _bingService.GetLatestImagesAsync(settings.Market, 8, settings.UseUhd);
-                    if (latestImages != null && latestImages.Count > 0)
+                    latestImages = _appState.TodayImages;
+                    _logger.LogInfo("Подборка за сегодня уже в кэше. Сетевой запрос пропущен.");
+                }
+                else
+                {
+                    while (true)
                     {
-                        break;
-                    }
+                        latestImages = await _bingService.GetLatestImagesAsync(settings.Market, 8, settings.UseUhd);
+                        if (latestImages != null && latestImages.Count > 0)
+                        {
+                            break;
+                        }
 
-                    if (isManual)
-                    {
-                        // При ручном клике ошибку выводим сразу без ожидания
-                        break;
-                    }
+                        if (isManual)
+                        {
+                            // При ручном клике ошибку выводим сразу без ожидания
+                            break;
+                        }
 
-                    retryCount++;
-                    if (retryCount > maxRetries)
-                    {
-                        _logger.LogError($"Достигнут лимит попыток подключения к Bing API ({maxRetries}). Отмена.");
-                        break;
-                    }
+                        retryCount++;
+                        if (retryCount > maxRetries)
+                        {
+                            _logger.LogError($"Достигнут лимит попыток подключения к Bing API ({maxRetries}). Отмена.");
+                            break;
+                        }
 
-                    _logger.LogWarning($"Попытка {retryCount}/{maxRetries} запроса к Bing API не удалась. Повтор через {delayMs / 1000} сек...");
-                    _appState.StatusMessage = $"Сеть недоступна, повтор {retryCount}/{maxRetries}...";
-                    await Task.Delay(delayMs);
+                        _logger.LogWarning($"Попытка {retryCount}/{maxRetries} запроса к Bing API не удалась. Повтор через {delayMs / 1000} сек...");
+                        _appState.StatusMessage = $"Сеть недоступна, повтор {retryCount}/{maxRetries}...";
+                        await Task.Delay(delayMs);
+                    }
                 }
 
                 if (latestImages == null || latestImages.Count == 0)
@@ -272,18 +276,21 @@ namespace BingWallTray.App.Services
                 // 3. Сохраняем подборку в AppState
                 _appState.TodayImages = latestImages.OrderByDescending(x => x.StartDate).ToList();
 
-                // Записываем полученную подборку в кэш
-                try
+                // Записываем полученную подборку в кэш (не нужно, если взяли её из кэша)
+                if (!reuseCache)
                 {
-                    string cacheDir = AppPaths.AppDataFolder;
-                    if (!Directory.Exists(cacheDir)) Directory.CreateDirectory(cacheDir);
-                    string cachePath = AppPaths.TodayCacheFilePath;
-                    string json = JsonSerializer.Serialize(latestImages);
-                    File.WriteAllText(cachePath, json);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning($"Не удалось записать кэш подборки обоев: {ex.Message}");
+                    try
+                    {
+                        string cacheDir = AppPaths.AppDataFolder;
+                        if (!Directory.Exists(cacheDir)) Directory.CreateDirectory(cacheDir);
+                        string cachePath = AppPaths.TodayCacheFilePath;
+                        string json = JsonSerializer.Serialize(latestImages);
+                        File.WriteAllText(cachePath, json);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning($"Не удалось записать кэш подборки обоев: {ex.Message}");
+                    }
                 }
 
                 // Выбираем изображение для автоматической установки в зависимости от источника автосмены
@@ -425,7 +432,8 @@ namespace BingWallTray.App.Services
                     _logger.LogInfo("Автосмена обоев пропущена (отключена или не совпадает с триггером).");
                     _appState.StatusMessage = "Автосмена выключена.";
                     _appState.IsChecking = false;
-                    settings.LastAutoAppliedDate = todayImage.StartDate;
+                    // Небольшой diff-инвариант: LastAutoAppliedDate пишется ТОЛЬКО при реальной установке,
+                    // иначе NewBing-режим посчитает день обработанным и никогда не применит эти обои.
                     await _settingsService.SaveAsync(settings);
                     await _historyService.CleanOldNonFavoriteImagesAsync(settings.DownloadFolder, localPath);
                     return;
@@ -441,7 +449,7 @@ namespace BingWallTray.App.Services
                     {
                         _notificationService.ShowInfo("WallTray", "Новые обои скачаны, но не установлены из-за фиксации.");
                     }
-                    settings.LastAutoAppliedDate = todayImage.StartDate;
+                    // LastAutoAppliedDate не трогаем: после снятия фиксации обои должны примениться ближайшим тиком.
                     await _settingsService.SaveAsync(settings);
                     await _historyService.CleanOldNonFavoriteImagesAsync(settings.DownloadFolder, localPath);
                     return;
