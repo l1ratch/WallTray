@@ -156,6 +156,25 @@ namespace BingWallTray.App.Services
             return (int)(value * multiplier);
         }
 
+        // Цикличные источники выбирают случайное изображение на каждый интервал (в отличие от
+        // TodayBing/NewBing, где смена происходит только при появлении новых обоев).
+        private static bool IsCyclicSource(string? source) =>
+            source == "RandomBing" || source == "Favorites" ||
+            string.Equals(source, "Wallhaven", StringComparison.OrdinalIgnoreCase);
+
+        // LastCheckUtc пишется ТОЛЬКО при успешной автосмене (шаг 7), поэтому это и есть
+        // время последней смены обоев.
+        private bool IntervalElapsedSinceLastChange(AppSettings settings)
+        {
+            if (string.IsNullOrEmpty(settings.LastCheckUtc)) return true;
+            if (DateTime.TryParse(settings.LastCheckUtc, null, System.Globalization.DateTimeStyles.RoundtripKind, out var last))
+            {
+                int intervalMs = ParseIntervalToMs(settings.AutoChangeInterval);
+                return (_dateTimeProvider.UtcNow - last).TotalMilliseconds >= intervalMs;
+            }
+            return true;
+        }
+
         public void UpdateInterval()
         {
             _timer?.Change(Timeout.Infinite, Timeout.Infinite);
@@ -180,13 +199,18 @@ namespace BingWallTray.App.Services
                 return;
             }
 
+            // Проверяем часто (не реже раза в час): смена привязана к появлению новых обоев,
+            // а не к фазе таймера. Интервал смены контролируется отдельно (шаг 4.5 в StartAutoCheckAsync).
+            // ponytail: час выбран без конфигурации; если станет мешать, вынести в настройки.
+            int checkPeriodMs = Math.Min(intervalMs, 60 * 60 * 1000);
+
             _timer = new System.Threading.Timer(async _ =>
             {
                 _logger.LogInfo("Запуск периодической автоматической проверки по таймеру...");
                 await StartAutoCheckAsync(isManual: false);
-            }, null, intervalMs, intervalMs);
+            }, null, checkPeriodMs, checkPeriodMs);
 
-            _logger.LogInfo($"Планировщик настроен на интервал {settings.AutoChangeInterval} ({intervalMs} мс). (Триггер: {settings.AutoChangeTrigger}, автопроверка Bing в фоне: {settings.AutoCheckBingEnabled})");
+            _logger.LogInfo($"Периодическая проверка каждые {TimeSpan.FromMilliseconds(checkPeriodMs)} (интервал смены: {settings.AutoChangeInterval}). (Триггер: {settings.AutoChangeTrigger}, автопроверка Bing в фоне: {settings.AutoCheckBingEnabled})");
         }
 
         public async Task StartAutoCheckAsync(bool isManual, bool isStartup = false, bool forceReload = false)
@@ -261,14 +285,28 @@ namespace BingWallTray.App.Services
                     }
                 }
 
+                // 2.1 Фоллбек: Bing недоступен (все попытки исчерпаны) — берём свежие обои
+                // из архива сообщества на GitHub (обновляется ежедневно, ссылки ведут на bing.com).
                 if (latestImages == null || latestImages.Count == 0)
                 {
-                    _logger.LogError("Не удалось получить подборку изображений.");
-                    _appState.StatusMessage = "Не удалось связаться с Bing.";
+                    _logger.LogWarning("Bing API недоступен. Пробуем архив обоев GitHub...");
+                    _appState.StatusMessage = "Bing недоступен, пробуем архив GitHub...";
+                    var archive = await _bingService.GetHistoricalArchiveImagesAsync(settings.Market, settings.UseUhd);
+                    if (archive.Count > 0)
+                    {
+                        latestImages = archive.Take(8).ToList();
+                        _logger.LogInfo($"Фоллбек: из архива GitHub получено {latestImages.Count} свежих обоев.");
+                    }
+                }
+
+                if (latestImages == null || latestImages.Count == 0)
+                {
+                    _logger.LogError("Не удалось получить подборку изображений ни от Bing, ни из архива GitHub.");
+                    _appState.StatusMessage = "Нет связи с Bing и GitHub.";
                     _appState.IsChecking = false;
                     if (isManual || settings.ShowNotifications)
                     {
-                        _notificationService.ShowError("WallTray", "Не удалось загрузить данные Bing. Проверьте интернет-соединение.");
+                        _notificationService.ShowError("WallTray", "Ни Bing, ни архив GitHub недоступны. Проверьте интернет-соединение.");
                     }
                     return;
                 }
@@ -373,6 +411,16 @@ namespace BingWallTray.App.Services
                         _appState.IsChecking = false;
                         return;
                     }
+                }
+
+                // 4.5 Цикличные источники (Случайные Bing / Wallhaven / Избранное) не меняют обои
+                // чаще настроенного интервала: частые проверки только следят за новыми изображениями.
+                if (!isManual && IsCyclicSource(settings.AutoChangeSource) && !IntervalElapsedSinceLastChange(settings))
+                {
+                    _logger.LogInfo($"Интервал автосмены ({settings.AutoChangeInterval}) ещё не истёк. Пропуск смены.");
+                    _appState.StatusMessage = "Обои актуальны.";
+                    _appState.IsChecking = false;
+                    return;
                 }
 
                 // Скачиваем изображение, если оно еще не на диске

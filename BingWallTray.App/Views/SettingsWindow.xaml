@@ -1112,7 +1112,7 @@
                                         <Path Grid.Column="0" Data="{StaticResource IconInfo}" Fill="#0078d4" Width="16" Height="16" Stretch="Uniform" VerticalAlignment="Top" Margin="0,2,14,0"/>
                                         <StackPanel Grid.Column="1">
                                             <TextBlock Text="Режим «Обои дня Bing»" FontWeight="Medium" Foreground="#ffffff" FontSize="12.5"/>
-                                            <TextBlock Text="Новые обои Microsoft Bing выходят один раз в сутки. Приложение проверяет публикацию свежего изображения и обновляет рабочий стол при смене дня или при запуске Windows." Foreground="#888888" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"/>
+                                            <TextBlock Text="Новые обои Microsoft Bing выходят один раз в сутки. Приложение проверяет их публикацию не реже раза в час и обновляет рабочий стол сразу при появлении свежего изображения (или при запуске Windows). Если Bing недоступен, обои берутся из открытого архива GitHub." Foreground="#888888" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"/>
                                         </StackPanel>
                                     </Grid>
                                 </Border>
@@ -1150,7 +1150,7 @@
                                                 </Grid.ColumnDefinitions>
                                                 <StackPanel Grid.Column="0" Margin="0,0,24,0" VerticalAlignment="Center">
                                                     <TextBlock Text="Интервал автосмены" FontWeight="Medium" Foreground="#ffffff" FontSize="13"/>
-                                                    <TextBlock Text="Периодичность смены обоев в фоновом режиме" Foreground="#888888" FontSize="11" Margin="0,3,0,0" TextWrapping="Wrap"/>
+                                                    <TextBlock Text="Обои меняются не чаще этого интервала; источники проверяются не реже раза в час" Foreground="#888888" FontSize="11" Margin="0,3,0,0" TextWrapping="Wrap"/>
                                                 </StackPanel>
                                                 <ComboBox Grid.Column="1" Width="140" SelectedValuePath="Content" SelectedValue="{Binding SelectedIntervalPreset}" VerticalAlignment="Center">
                                                     <ComboBoxItem Content="15m"/>

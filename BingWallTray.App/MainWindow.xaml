@@ -762,8 +762,13 @@
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
 
+                        <!-- Честный статус архива: виден только если GitHub недоступен -->
+                        <TextBlock Grid.Row="0" Text="Архив обоев недоступен: нет соединения с GitHub. Показаны только свежие обои Bing."
+                                   Foreground="#e0955a" FontSize="10.5" TextWrapping="Wrap" Margin="2,4,2,0"
+                                   Visibility="{Binding IsArchiveUnavailable, Converter={StaticResource BoolToVisibility}}"/>
+
                         <!-- Сетка из плиток обоев с поддержкой бесконечного скролла natively -->
-                        <ListBox x:Name="GalleryListBox" Grid.Row="0" Grid.RowSpan="2" ItemsSource="{Binding DisplayedImages}" Background="Transparent" BorderThickness="0" Padding="0" Margin="0"
+                        <ListBox x:Name="GalleryListBox" Grid.Row="1" ItemsSource="{Binding DisplayedImages}" Background="Transparent" BorderThickness="0" Padding="0" Margin="0"
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Auto"
                                  ScrollViewer.ScrollChanged="GalleryScrollViewer_ScrollChanged">
                             <ListBox.Template>

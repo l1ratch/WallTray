@@ -133,6 +133,22 @@ namespace BingWallTray.App.ViewModels
 
         public bool IsBingSourceActive => CurrentSource == "Bing";
         public bool IsWallhavenSourceActive => CurrentSource == "Wallhaven";
+
+        private bool _isArchiveUnavailable = false;
+
+        /// <summary>
+        /// True, если исторический архив GitHub не удалось загрузить — в галерее показывается честное предупреждение.
+        /// </summary>
+        public bool IsArchiveUnavailable
+        {
+            get => _isArchiveUnavailable;
+            private set => SetProperty(ref _isArchiveUnavailable, value);
+        }
+
+        private void SetArchiveUnavailable(bool unavailable)
+        {
+            System.Windows.Application.Current?.Dispatcher.Invoke(() => IsArchiveUnavailable = unavailable);
+        }
         public bool ShowSourceSelector => Settings.EnableWallhaven;
         public bool IsMultipleSourcesEnabled => Settings.EnableWallhaven;
         public bool IsSingleSourceEnabled => !IsMultipleSourcesEnabled;
@@ -1089,6 +1105,7 @@ namespace BingWallTray.App.ViewModels
 
                     _historicalArchiveImages = archive;
                     _historicalLoadedCount = 10;
+                    SetArchiveUnavailable(false);
 
                     if (CurrentSource == "Bing")
                     {
@@ -1098,10 +1115,16 @@ namespace BingWallTray.App.ViewModels
                         });
                     }
                 }
+                else
+                {
+                    // Архив вернулся пустым (нет соединения с GitHub или изменился формат) — честно сообщаем.
+                    SetArchiveUnavailable(true);
+                }
             }
             catch (Exception ex)
             {
                 _logger.LogError("Ошибка при фоновой загрузке архива", ex);
+                SetArchiveUnavailable(true);
             }
             finally
             {
@@ -1202,9 +1225,11 @@ namespace BingWallTray.App.ViewModels
                 var list = new List<BingImage>();
                 var seenKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 var seenIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                var seenTitles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-                // 1. Сначала добавляем актуальные обои Bing
+                // 1. Сначала добавляем актуальные обои Bing.
+                // Дедупликация по ключу и id; title сознательно НЕ используется —
+                // у Bing бывают разные обои с одинаковым названием, а ключи API и GitHub-архива
+                // совпадают (обе ссылки вида th?id=OHR.<Имя>_...).
                 if (TodayImages != null)
                 {
                     foreach (var img in TodayImages)
@@ -1212,23 +1237,20 @@ namespace BingWallTray.App.ViewModels
                         if (img == null) continue;
                         var key = GetImageKey(img);
                         var id = GetImageId(img);
-                        var title = img.Title?.Trim() ?? string.Empty;
 
                         bool isDuplicate = (!string.IsNullOrEmpty(key) && seenKeys.Contains(key)) ||
-                                           (!string.IsNullOrEmpty(id) && seenIds.Contains(id)) ||
-                                           (!string.IsNullOrEmpty(title) && seenTitles.Contains(title));
+                                           (!string.IsNullOrEmpty(id) && seenIds.Contains(id));
 
                         if (!isDuplicate)
                         {
                             if (!string.IsNullOrEmpty(key)) seenKeys.Add(key);
                             if (!string.IsNullOrEmpty(id)) seenIds.Add(id);
-                            if (!string.IsNullOrEmpty(title)) seenTitles.Add(title);
                             list.Add(img);
                         }
                     }
                 }
 
-                // 2. Добавляем исторический архив с надежной дедупликацией
+                // 2. Добавляем исторический архив
                 if (_historicalArchiveImages != null)
                 {
                     foreach (var img in _historicalArchiveImages.Take(_historicalLoadedCount))
@@ -1236,17 +1258,14 @@ namespace BingWallTray.App.ViewModels
                         if (img == null) continue;
                         var key = GetImageKey(img);
                         var id = GetImageId(img);
-                        var title = img.Title?.Trim() ?? string.Empty;
 
                         bool isDuplicate = (!string.IsNullOrEmpty(key) && seenKeys.Contains(key)) ||
-                                           (!string.IsNullOrEmpty(id) && seenIds.Contains(id)) ||
-                                           (!string.IsNullOrEmpty(title) && seenTitles.Contains(title));
+                                           (!string.IsNullOrEmpty(id) && seenIds.Contains(id));
 
                         if (!isDuplicate)
                         {
                             if (!string.IsNullOrEmpty(key)) seenKeys.Add(key);
                             if (!string.IsNullOrEmpty(id)) seenIds.Add(id);
-                            if (!string.IsNullOrEmpty(title)) seenTitles.Add(title);
                             list.Add(img);
                         }
                     }
