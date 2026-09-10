@@ -58,3 +58,6 @@ build-release.ps1
 AGENTS.md
 APP_MAP.md
 GEMINI.md
+
+## Repowise local index data (wiki.db, caches, vector store)
+.repowise/
