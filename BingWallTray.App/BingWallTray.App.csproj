@@ -24,10 +24,10 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     
     <!-- Версионирование CalVer (YY.M.Patch) -->
-    <Version>26.8.4</Version>
-    <AssemblyVersion>26.8.4.0</AssemblyVersion>
-    <FileVersion>26.8.4.0</FileVersion>
-    <InformationalVersion>26.8.4</InformationalVersion>
+    <Version>26.8.5</Version>
+    <AssemblyVersion>26.8.5.0</AssemblyVersion>
+    <FileVersion>26.8.5.0</FileVersion>
+    <InformationalVersion>26.8.5</InformationalVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -38,6 +38,10 @@
     <None Update="Assets\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="BingWallTray.Tests" />
   </ItemGroup>
 
   <ItemGroup>
