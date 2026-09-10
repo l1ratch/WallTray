@@ -36,6 +36,9 @@ namespace BingWallTray.App.Utils
         public static string DefaultWallpapersFolder =>
             Path.Combine(AppDataFolder, "Wallpapers");
 
+        public static string ThumbsFolder =>
+            Path.Combine(AppDataFolder, "Thumbs");
+
         public static string SettingsFilePath =>
             Path.Combine(AppDataFolder, "settings.json");
 

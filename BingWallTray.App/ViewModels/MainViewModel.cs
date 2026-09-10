@@ -1279,6 +1279,10 @@ namespace BingWallTray.App.ViewModels
 
                 DisplayedImages = new ObservableCollection<BingImage>(sorted);
             }
+
+            // Миниатюры качаются фоном в диск-кэш и подменяют ThumbnailUrl/PreviewUrl
+            // на локальные пути — конвертер никогда не трогает сеть (см. ThumbnailCache).
+            ThumbnailCache.Prefetch(DisplayedImages, _logger);
         }
 
         private void UpdateSelectedImageFavoriteStatus()

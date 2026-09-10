@@ -24,10 +24,10 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     
     <!-- Версионирование CalVer (YY.M.Patch) -->
-    <Version>26.8.5</Version>
-    <AssemblyVersion>26.8.5.0</AssemblyVersion>
-    <FileVersion>26.8.5.0</FileVersion>
-    <InformationalVersion>26.8.5</InformationalVersion>
+    <Version>26.8.6</Version>
+    <AssemblyVersion>26.8.6.0</AssemblyVersion>
+    <FileVersion>26.8.6.0</FileVersion>
+    <InformationalVersion>26.8.6</InformationalVersion>
   </PropertyGroup>
 
   <ItemGroup>

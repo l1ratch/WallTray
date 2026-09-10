@@ -82,7 +82,11 @@ namespace BingWallTray.App.Models
                 if (!Url.StartsWith("http", StringComparison.OrdinalIgnoreCase)) return Url;
                 return Url.Contains("?") ? (Url + "&w=240&h=135&c=7") : (Url + "?w=240&h=135&c=7");
             }
-            set => _thumbnailUrl = value;
+            set
+            {
+                _thumbnailUrl = value;
+                OnPropertyChanged();
+            }
         }
 
         private string? _previewUrl;
@@ -96,7 +100,11 @@ namespace BingWallTray.App.Models
                 if (!Url.StartsWith("http", StringComparison.OrdinalIgnoreCase)) return Url;
                 return Url.Contains("?") ? (Url + "&w=800&h=450") : (Url + "?w=800&h=450");
             }
-            set => _previewUrl = value;
+            set
+            {
+                _previewUrl = value;
+                OnPropertyChanged();
+            }
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;

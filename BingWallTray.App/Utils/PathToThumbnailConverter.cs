@@ -40,6 +40,16 @@ namespace BingWallTray.App.Utils
                 }
             }
 
+            // Сетевые URL не качаем вообще: сеть в UI-потоке зависала интерфейс на флaky CDN
+            // (26.8.4), а WPF-загрузчик DelayCreation отравлялся тримом памяти (26.8.3).
+            // Локальный путь подкладывает ThumbnailCache (Utils/ThumbnailCache.cs) —
+            // конвертер читает только файлы с диска.
+            if (Uri.TryCreate(path, UriKind.Absolute, out var remoteUri) &&
+                (remoteUri.Scheme == Uri.UriSchemeHttp || remoteUri.Scheme == Uri.UriSchemeHttps))
+            {
+                return null;
+            }
+
             string cacheKey = $"{path}_{decodeWidth}";
             if (_cache.TryGetValue(cacheKey, out var cached))
             {
@@ -60,15 +70,7 @@ namespace BingWallTray.App.Utils
                 }
                 bitmap.DecodePixelWidth = decodeWidth;
                 bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                // Сетевые URL: качаем и декодируем ПОЛНОСТЬЮ внутри EndInit, до Freeze.
-                // DelayCreation оставляет висящую отложенную WPF-загрузку, которую убивает
-                // MemoryOptimizer.TrimWorkingSet() при скрытии окна — после этого URL
-                // больше не загружается никогда (галерея серых плиток, 26.8.3).
-                // Синхронный путь иммунен: воспроизведено репро 2026-09-11.
-                // Локальные пути оставляем с DelayCreation — ленивый декод, загрузки нет.
-                bitmap.CreateOptions = uri != null && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps)
-                    ? BitmapCreateOptions.None
-                    : BitmapCreateOptions.DelayCreation;
+                bitmap.CreateOptions = BitmapCreateOptions.DelayCreation;
                 bitmap.EndInit();
                 bitmap.Freeze();
 
