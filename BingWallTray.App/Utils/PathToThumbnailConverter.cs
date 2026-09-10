@@ -60,7 +60,15 @@ namespace BingWallTray.App.Utils
                 }
                 bitmap.DecodePixelWidth = decodeWidth;
                 bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                bitmap.CreateOptions = BitmapCreateOptions.DelayCreation;
+                // Сетевые URL: качаем и декодируем ПОЛНОСТЬЮ внутри EndInit, до Freeze.
+                // DelayCreation оставляет висящую отложенную WPF-загрузку, которую убивает
+                // MemoryOptimizer.TrimWorkingSet() при скрытии окна — после этого URL
+                // больше не загружается никогда (галерея серых плиток, 26.8.3).
+                // Синхронный путь иммунен: воспроизведено репро 2026-09-11.
+                // Локальные пути оставляем с DelayCreation — ленивый декод, загрузки нет.
+                bitmap.CreateOptions = uri != null && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps)
+                    ? BitmapCreateOptions.None
+                    : BitmapCreateOptions.DelayCreation;
                 bitmap.EndInit();
                 bitmap.Freeze();
 
