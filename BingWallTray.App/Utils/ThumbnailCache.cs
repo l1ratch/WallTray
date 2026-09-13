@@ -30,28 +30,67 @@ namespace BingWallTray.App.Utils
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
         }
 
-        /// <summary>Фоновая предзагрузка миниатюр и превью для списка изображений (fire-and-forget).</summary>
+        /// <summary>
+        /// Фоновая предзагрузка миниатюр и превью для списка изображений.
+        /// Сетка важнее окна деталей: миниатюры качаются первым проходом, превью — вторым.
+        /// </summary>
         public static void Prefetch(IEnumerable<BingImage> images, ILoggingService logger)
         {
-            _ = Task.Run(async () =>
+            _ = PrefetchAsync(_httpClient, AppPaths.ThumbsFolder, images, logger);
+        }
+
+        // internal: тестируемый асинхронный проход (тесты подставляют свой HttpClient и папку кэша).
+        internal static async Task PrefetchAsync(HttpClient client, string cacheDir, IEnumerable<BingImage> images, ILoggingService logger)
+        {
+            var items = new List<BingImage>();
+            foreach (var img in images)
             {
-                foreach (var img in images)
+                if (img != null) items.Add(img);
+            }
+            if (items.Count == 0) return;
+
+            // ponytail: 4 параллельные загрузки — сетка заполняется пачкой, как раньше
+            // (последовательная очередь выпускала плитки по одной); больше упирается
+            // в капризный CDN и лимиты одновременных соединений.
+            using var throttler = new SemaphoreSlim(4);
+
+            await DownloadPassAsync(client, cacheDir, items, isPreview: false, throttler, logger).ConfigureAwait(false);
+            await DownloadPassAsync(client, cacheDir, items, isPreview: true, throttler, logger).ConfigureAwait(false);
+        }
+
+        private static async Task DownloadPassAsync(HttpClient client, string cacheDir, List<BingImage> items, bool isPreview, SemaphoreSlim throttler, ILoggingService logger)
+        {
+            var tasks = new List<Task>(items.Count);
+            foreach (var img in items)
+            {
+                tasks.Add(DownloadOneAsync(client, cacheDir, img, isPreview, throttler, logger));
+            }
+            await Task.WhenAll(tasks).ConfigureAwait(false);
+        }
+
+        private static async Task DownloadOneAsync(HttpClient client, string cacheDir, BingImage image, bool isPreview, SemaphoreSlim throttler, ILoggingService logger)
+        {
+            await throttler.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                string url = isPreview ? image.PreviewUrl : image.ThumbnailUrl;
+                string? local = await GetOrCreateAsync(client, url, cacheDir, logger).ConfigureAwait(false);
+                if (local == null || string.Equals(url, local, StringComparison.OrdinalIgnoreCase))
                 {
-                    if (img == null) continue;
-
-                    string? thumbLocal = await GetOrCreateAsync(img.ThumbnailUrl, logger).ConfigureAwait(false);
-                    if (thumbLocal != null && !string.Equals(img.ThumbnailUrl, thumbLocal, StringComparison.OrdinalIgnoreCase))
-                    {
-                        SetOnUiThread(() => img.ThumbnailUrl = thumbLocal);
-                    }
-
-                    string? previewLocal = await GetOrCreateAsync(img.PreviewUrl, logger).ConfigureAwait(false);
-                    if (previewLocal != null && !string.Equals(img.PreviewUrl, previewLocal, StringComparison.OrdinalIgnoreCase))
-                    {
-                        SetOnUiThread(() => img.PreviewUrl = previewLocal);
-                    }
+                    return;
                 }
-            });
+
+                string finalLocal = local;
+                SetOnUiThread(() =>
+                {
+                    if (isPreview) image.PreviewUrl = finalLocal;
+                    else image.ThumbnailUrl = finalLocal;
+                });
+            }
+            finally
+            {
+                throttler.Release();
+            }
         }
 
         internal static Task<string?> GetOrCreateAsync(string? url, ILoggingService logger)

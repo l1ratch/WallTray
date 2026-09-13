@@ -113,5 +113,48 @@ namespace BingWallTray.Tests
             string? path = await ThumbnailCache.GetOrCreateAsync(new HttpClient(), @"C:\Wallpapers\local.jpg", _cacheDir, new MockLoggingService());
             Assert.Null(path);
         }
+
+        private class AnyJpegHandler : HttpMessageHandler
+        {
+            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+            {
+                byte[] bytes = new byte[4 * 1024];
+                bytes[0] = 0xFF; bytes[1] = 0xD8; bytes[2] = 0xFF; // JPEG magic
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(bytes) });
+            }
+        }
+
+        [Fact]
+        public async Task PrefetchAsync_SwapsThumbsThenPreviewsToCachedPaths()
+        {
+            var images = new List<BingWallTray.App.Models.BingImage>();
+            for (int i = 0; i < 5; i++)
+            {
+                images.Add(new BingWallTray.App.Models.BingImage
+                {
+                    Url = $"https://example.test/img{i}.jpg",
+                    Title = $"Test {i}",
+                    Market = "ru-RU",
+                    StartDate = "20260911"
+                });
+            }
+
+            using var client = new HttpClient(new AnyJpegHandler());
+            await ThumbnailCache.PrefetchAsync(client, _cacheDir, images, new MockLoggingService());
+
+            foreach (var img in images)
+            {
+                Assert.StartsWith(_cacheDir, img.ThumbnailUrl, StringComparison.OrdinalIgnoreCase);
+                Assert.StartsWith(_cacheDir, img.PreviewUrl, StringComparison.OrdinalIgnoreCase);
+                Assert.True(File.Exists(img.ThumbnailUrl), $"thumb file missing: {img.ThumbnailUrl}");
+                Assert.True(File.Exists(img.PreviewUrl), $"preview file missing: {img.PreviewUrl}");
+            }
+
+            // Второй проход — всё из дискового кэша, сеть не используется и файлов не прибавляется
+            int filesBefore = Directory.GetFiles(_cacheDir, "*.jpg").Length;
+            using var client2 = new HttpClient(new SequenceHandler(ErrorResponse())); // любая сеть = провал теста
+            await ThumbnailCache.PrefetchAsync(client2, _cacheDir, images, new MockLoggingService());
+            Assert.Equal(filesBefore, Directory.GetFiles(_cacheDir, "*.jpg").Length);
+        }
     }
 }
