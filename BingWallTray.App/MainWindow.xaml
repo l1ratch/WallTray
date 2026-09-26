@@ -1445,9 +1445,12 @@
                 <Grid Margin="6,4,6,4">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
-                        <ColumnDefinition x:Name="WallhavenNavColumn" Width="*">
+                        <ColumnDefinition x:Name="WallhavenNavColumn">
                             <ColumnDefinition.Style>
                                 <Style TargetType="ColumnDefinition">
+                                    <!-- 0 при выключенном Wallhaven: локальный Width="*" забивал
+                                         и Setter, и DataTrigger (локальное значение сильнее стиля),
+                                         из-за чего в доке висела пустая ячейка. -->
                                     <Setter Property="Width" Value="0"/>
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding IsMultipleSourcesEnabled}" Value="True">
